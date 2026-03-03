@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediRemind - Smart Medication Reminders</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Chart.js (Priority 3: Adherence Charts) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <!-- jsPDF + AutoTable (Priority 3: PDF Export) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <!-- Supabase JS SDK -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <link rel="icon" type="image/png" href="assets/logo/logo.png">
+</head>
+<body class="min-h-screen flex flex-col" style="background:var(--mr-bg)">
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         SPLASH / STARTUP ANIMATION
+         ═══════════════════════════════════════════════════════════════════ -->
+    <div id="splash-screen">
+        <div class="splash-logo">
+            <i class="fas fa-pills"></i>
+        </div>
+        <div class="splash-title">MediRemind</div>
+        <div class="splash-subtitle">Your smart medication companion</div>
+        <div class="splash-dots">
+            <div class="splash-dot"></div>
+            <div class="splash-dot"></div>
+            <div class="splash-dot"></div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         TOP BAR (pre-login) / hidden when dashboard is shown
+         ═══════════════════════════════════════════════════════════════════ -->
+    <nav id="top-nav" class="border-b" style="background:var(--mr-surface);border-color:var(--mr-border)">
+        <div class="container mx-auto px-4 py-3">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-3 cursor-pointer" onclick="window.showLanding()">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:linear-gradient(135deg,var(--mr-blue),var(--mr-blue-dark))">
+                        <i class="fas fa-pills text-white text-lg"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold" style="color:var(--mr-text)">MediRemind</h1>
+                        <p class="text-xs" style="color:var(--mr-text-muted)">Cloud Medication Manager</p>
+                    </div>
+                </div>
+                <div id="nav-links" class="flex items-center space-x-6">
+                    <div class="text-sm" style="color:var(--mr-text-muted)">
+                        <i class="fas fa-cloud mr-1"></i> Cloud Powered
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content (pre-login pages) -->
+    <main id="pre-login-main" class="container mx-auto px-4 py-8 flex-1 flex items-center justify-center">
+        <!-- Hero Section (shown when not logged in) -->
+        <div id="hero-section" class="text-center w-full">
+            <div class="max-w-3xl mx-auto">
+                <div class="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6" style="background:linear-gradient(135deg,var(--mr-blue),var(--mr-blue-dark))">
+                    <i class="fas fa-bell text-white text-3xl"></i>
+                </div>
+                <h1 class="text-4xl font-bold mb-4" style="color:var(--mr-text)">Never Miss a Medication Again</h1>
+                <p class="text-lg mb-8" style="color:var(--mr-text-sec)">
+                    MediRemind sends automated email and SMS reminders for your medications, 
+                    helping you stay healthy and consistent.
+                </p>
+                <div class="flex flex-col md:flex-row gap-4 justify-center">
+                    <button onclick="showSignup()" class="mr-btn mr-btn-primary text-base py-3 px-8">
+                        <i class="fas fa-user-plus"></i>Get Started Free
+                    </button>
+                    <button onclick="showLogin()" class="mr-btn mr-btn-outline text-base py-3 px-8">
+                        <i class="fas fa-sign-in-alt"></i>Sign In
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Auth Forms (hidden by default) -->
+        <div id="auth-forms" class="hidden max-w-md mx-auto w-full">
+            <!-- Forms will be injected here -->
+        </div>
+    </main>
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         DASHBOARD — Spotify Sidebar Layout (hidden until login)
+         ═══════════════════════════════════════════════════════════════════ -->
+    <div id="dashboard" class="hidden">
+        <div class="mr-app-layout fade-in">
+            <!-- ── Sidebar ────────────────────────────────────────────── -->
+            <aside class="mr-sidebar" id="sidebar">
+                <!-- Brand -->
+                <div class="mr-sidebar-brand">
+                    <div class="brand-icon"><i class="fas fa-pills"></i></div>
+                    <div class="brand-text">
+                        <h1>MediRemind</h1>
+                        <p>Cloud Medication Manager</p>
+                    </div>
+                </div>
+
+                <!-- Navigation -->
+                <nav class="mr-sidebar-nav">
+                    <span class="mr-sidebar-section-label">Menu</span>
+                    <button class="mr-nav-item active" onclick="window.medicationForm.open()">
+                        <i class="fas fa-plus-circle"></i> Add Medication
+                    </button>
+                    <button class="mr-nav-item" onclick="window.reminders.openUpcomingModal()">
+                        <i class="fas fa-bell"></i> Upcoming Reminders
+                    </button>
+                    <button class="mr-nav-item" onclick="window.reports.open()">
+                        <i class="fas fa-chart-bar"></i> Reports
+                    </button>
+
+                    <span class="mr-sidebar-section-label">Account</span>
+                    <button class="mr-nav-item" onclick="window.userProfile.open()">
+                        <i class="fas fa-user-cog"></i> Profile &amp; Settings
+                    </button>
+                    <button class="mr-nav-item" onclick="window.helpSupport.open()">
+                        <i class="fas fa-life-ring"></i> Help &amp; Support
+                    </button>
+                </nav>
+
+                <!-- Sidebar Footer / User -->
+                <div class="mr-sidebar-footer">
+                    <div class="mr-sidebar-user">
+                        <div class="user-avatar" id="sidebar-avatar">U</div>
+                        <div class="user-info">
+                            <div class="user-name" id="sidebar-user-name">User</div>
+                            <div class="user-role">Free Plan</div>
+                        </div>
+                    </div>
+                    <button onclick="window.logout()" class="mr-nav-item" style="color:#e74c3c;margin-top:8px">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
+                </div>
+            </aside>
+
+            <!-- Mobile sidebar overlay -->
+            <div class="mr-sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+            <!-- ── Main Content ────────────────────────────────────── -->
+            <div class="mr-main">
+                <!-- Mobile top-bar with hamburger -->
+                <div class="flex items-center gap-3 p-4 md:hidden" style="border-bottom:1px solid var(--mr-border)">
+                    <button onclick="openSidebar()" class="w-9 h-9 rounded-lg flex items-center justify-center" style="background:var(--mr-surface-alt)">
+                        <i class="fas fa-bars" style="color:var(--mr-text-sec)"></i>
+                    </button>
+                    <span class="font-bold" style="color:var(--mr-text)">MediRemind</span>
+                </div>
+
+                <div class="p-6 lg:p-10 max-w-6xl mx-auto">
+                    <!-- Dashboard Header -->
+                    <div class="mb-8">
+                        <h1 class="text-3xl font-bold" style="color:var(--mr-text)">Dashboard</h1>
+                        <p style="color:var(--mr-text-sec)">Manage your medications and reminders</p>
+                    </div>
+
+                    <!-- Stats Grid -->
+                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+                        <div class="mr-stat-card">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm" style="color:var(--mr-text-muted)">Medications</p>
+                                    <p class="text-3xl font-bold mt-1" style="color:var(--mr-text)" id="total-medications">0</p>
+                                </div>
+                                <div class="mr-stat-icon blue"><i class="fas fa-pills text-lg"></i></div>
+                            </div>
+                        </div>
+
+                        <div class="mr-stat-card">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm" style="color:var(--mr-text-muted)">Due Today</p>
+                                    <p class="text-3xl font-bold mt-1" style="color:var(--mr-text)" id="due-today">0</p>
+                                </div>
+                                <div class="mr-stat-icon green"><i class="fas fa-clock text-lg"></i></div>
+                            </div>
+                        </div>
+
+                        <div class="mr-stat-card">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm" style="color:var(--mr-text-muted)">Adherence Rate</p>
+                                    <p class="text-3xl font-bold mt-1" style="color:var(--mr-text)" id="adherence-rate">0%</p>
+                                </div>
+                                <div class="mr-stat-icon purple"><i class="fas fa-chart-line text-lg"></i></div>
+                            </div>
+                            <div class="mt-3">
+                                <div class="w-full rounded-full h-2" style="background:var(--mr-surface-alt)">
+                                    <div class="h-2 rounded-full" id="adherence-bar" style="width:0%;background:linear-gradient(90deg,var(--mr-green),var(--mr-green-dark))"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Active Reminders -->
+                        <div class="mr-stat-card cursor-pointer" onclick="window.reminders.openForm()" title="Set a new reminder">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm" style="color:var(--mr-text-muted)">Active Reminders</p>
+                                    <p class="text-3xl font-bold mt-1" style="color:var(--mr-text)" id="active-reminders-count">0</p>
+                                </div>
+                                <div class="mr-stat-icon yellow"><i class="fas fa-bell text-lg"></i></div>
+                            </div>
+                            <p class="text-xs font-medium mt-2" style="color:var(--mr-green-dark)">+ Set new reminder</p>
+                        </div>
+                    </div>
+
+                    <!-- Medications Section -->
+                    <div>
+                        <div class="mr-card p-6">
+                                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                                    <div>
+                                        <h2 class="text-2xl font-bold" style="color:var(--mr-text)">Your Medications</h2>
+                                        <p style="color:var(--mr-text-sec)">Manage your medication schedule</p>
+                                    </div>
+                                    <div class="flex space-x-3">
+                                        <button onclick="window.medications.load()" class="mr-btn mr-btn-outline">
+                                            <i class="fas fa-sync-alt"></i> Refresh
+                                        </button>
+                                        <button onclick="window.medicationForm.open()" class="mr-btn mr-btn-primary">
+                                            <i class="fas fa-plus"></i> Add New
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Medications List -->
+                                <div id="medications-list" class="space-y-4">
+                                    <div class="text-center py-12">
+                                        <div class="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4" style="background:var(--mr-blue-light)">
+                                            <i class="fas fa-pills text-3xl" style="color:var(--mr-blue-dark)"></i>
+                                        </div>
+                                        <p class="text-lg font-medium" style="color:var(--mr-text-sec)">No medications yet</p>
+                                        <p class="text-sm mt-2" style="color:var(--mr-text-muted)">Add your first medication to get started with MediRemind</p>
+                                        <button onclick="window.medicationForm.open()" class="mr-btn mr-btn-primary mt-6">
+                                            <i class="fas fa-plus"></i> Add Your First Medication
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         UPCOMING REMINDERS MODAL (centered overlay with blur)
+         ═══════════════════════════════════════════════════════════════════ -->
+    <div id="upcoming-reminders-overlay" class="hidden fixed inset-0 z-[70] flex items-center justify-center p-4">
+        <!-- Blurred backdrop -->
+        <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="window.reminders.closeUpcomingModal()"></div>
+        <!-- Modal card -->
+        <div class="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden"
+             style="animation:fadeInScale .25s ease-out">
+            <!-- Header -->
+            <div class="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 bg-white/20 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-bell text-white"></i>
+                    </div>
+                    <h2 class="text-lg font-bold">Upcoming Reminders</h2>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="window.reminders.openForm(); window.reminders.closeUpcomingModal();"
+                            class="w-8 h-8 bg-white/20 hover:bg-white/30 rounded-lg flex items-center justify-center transition"
+                            title="Set new reminder">
+                        <i class="fas fa-plus text-white text-sm"></i>
+                    </button>
+                    <button onclick="window.reminders.closeUpcomingModal()"
+                            class="w-8 h-8 bg-white/20 hover:bg-white/30 rounded-lg flex items-center justify-center transition"
+                            title="Close">
+                        <i class="fas fa-times text-white text-sm"></i>
+                    </button>
+                </div>
+            </div>
+            <!-- Reminder list -->
+            <div class="p-5 max-h-[60vh] overflow-y-auto">
+                <div id="upcoming-reminders" class="space-y-3">
+                    <div class="text-center py-8" style="color:var(--mr-text-muted)">
+                        <i class="fas fa-bell-slash text-3xl mb-3 opacity-30"></i>
+                        <p class="text-sm">No active reminders</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         PRIORITY 3 — REPORTS PANEL (full-screen overlay)
+         ═══════════════════════════════════════════════════════════════════ -->
+    <div id="reports-panel" class="hidden fixed inset-0 z-[60] bg-white flex-col">
+
+        <!-- Panel Header -->
+        <div class="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-purple-600 to-indigo-700 text-white flex-shrink-0">
+            <div class="flex items-center gap-4">
+                <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                    <i class="fas fa-chart-bar text-white text-lg"></i>
+                </div>
+                <div>
+                    <h2 class="text-xl font-bold">Reports &amp; Analytics</h2>
+                    <p class="text-purple-200 text-sm">Medication adherence insights</p>
+                </div>
+            </div>
+            <button onclick="window.reports.close()"
+                    class="w-10 h-10 bg-white/20 hover:bg-white/30 rounded-xl flex items-center justify-center transition"
+                    title="Close Reports">
+                <i class="fas fa-times text-white text-lg"></i>
+            </button>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="flex border-b bg-white px-6 flex-shrink-0">
+            <button class="report-tab-btn report-tab-active py-4 px-6 text-sm font-medium transition"
+                    data-tab="adherence" onclick="window.reports.showTab('adherence')">
+                <i class="fas fa-chart-line mr-2"></i>Adherence Reports
+            </button>
+            <button class="report-tab-btn report-tab-inactive py-4 px-6 text-sm font-medium transition"
+                    data-tab="history" onclick="window.reports.showTab('history')">
+                <i class="fas fa-history mr-2"></i>Medication History
+            </button>
+            <button class="report-tab-btn report-tab-inactive py-4 px-6 text-sm font-medium transition"
+                    data-tab="export" onclick="window.reports.showTab('export')">
+                <i class="fas fa-download mr-2"></i>Export Data
+            </button>
+        </div>
+
+        <!-- Scrollable Tab Content -->
+        <div class="flex-1 overflow-y-auto bg-gradient-to-br from-gray-50 to-purple-50">
+
+            <!-- ── Adherence Reports ── -->
+            <div class="report-tab-pane p-6 max-w-5xl mx-auto" data-pane="adherence">
+                <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
+                    <div>
+                        <h3 class="text-xl font-bold text-gray-800">Adherence Overview</h3>
+                        <p class="text-gray-500 text-sm mt-1">Track how consistently you take your medications</p>
+                    </div>
+                    <!-- Period Selector -->
+                    <div class="flex bg-gray-100 rounded-xl p-1 gap-1">
+                        <button class="period-btn period-btn-inactive px-4 py-2 rounded-lg text-sm font-medium transition"
+                                data-period="daily" onclick="window.reports.changePeriod('daily')">Daily</button>
+                        <button class="period-btn period-btn-active px-4 py-2 rounded-lg text-sm font-medium transition"
+                                data-period="weekly" onclick="window.reports.changePeriod('weekly')">Weekly</button>
+                        <button class="period-btn period-btn-inactive px-4 py-2 rounded-lg text-sm font-medium transition"
+                                data-period="monthly" onclick="window.reports.changePeriod('monthly')">Monthly</button>
+                    </div>
+                </div>
+
+                <!-- Chart Area -->
+                <div class="bg-white rounded-2xl border border-gray-200 p-6 mb-6 shadow-sm">
+                    <div style="position:relative; height:300px;">
+                        <canvas id="adherence-chart-canvas"></canvas>
+                    </div>
+                </div>
+
+                <!-- Summary Cards -->
+                <div id="adherence-summary"></div>
+            </div>
+
+            <!-- ── Medication History ── -->
+            <div class="report-tab-pane hidden p-6 max-w-4xl mx-auto" data-pane="history">
+                <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
+                    <div>
+                        <h3 class="text-xl font-bold text-gray-800">Medication History</h3>
+                        <p class="text-gray-500 text-sm mt-1">Complete timeline of your medication records (last 30 days)</p>
+                    </div>
+                    <!-- Filters -->
+                    <div class="flex flex-wrap gap-3">
+                        <select id="history-med-filter"
+                                onchange="window.reports.filterHistory('med', this.value)"
+                                class="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-purple-300">
+                            <option value="all">All Medications</option>
+                        </select>
+                        <select id="history-status-filter"
+                                onchange="window.reports.filterHistory('status', this.value)"
+                                class="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-purple-300">
+                            <option value="all">All Statuses</option>
+                            <option value="taken">Taken</option>
+                            <option value="skipped">Skipped</option>
+                            <option value="missed">Missed</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Timeline List -->
+                <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+                    <div id="history-list">
+                        <div class="text-center py-12 text-gray-400">
+                            <i class="fas fa-spinner fa-spin text-3xl mb-3"></i>
+                            <p class="text-sm">Loading history…</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Export Data ── -->
+            <div class="report-tab-pane hidden p-6 max-w-3xl mx-auto" data-pane="export">
+                <div class="mb-6">
+                    <h3 class="text-xl font-bold text-gray-800">Export Data</h3>
+                    <p class="text-gray-500 text-sm mt-1">Download your medication data in multiple formats</p>
+                </div>
+
+                <div class="space-y-5">
+                    <!-- CSV -->
+                    <div class="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+                        <div class="flex items-center gap-4 mb-5">
+                            <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-file-csv text-green-600 text-xl"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-gray-800">CSV Export</h4>
+                                <p class="text-gray-500 text-sm">Compatible with Excel, Google Sheets, and any spreadsheet app</p>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <button onclick="window.exportData.toCSV('history')"
+                                    class="export-card flex items-center justify-center gap-2 bg-green-50 hover:bg-green-100 text-green-700 border border-green-200 p-4 rounded-xl transition font-medium">
+                                <i class="fas fa-download"></i> Medication History
+                            </button>
+                            <button onclick="window.exportData.toCSV('medications')"
+                                    class="export-card flex items-center justify-center gap-2 bg-green-50 hover:bg-green-100 text-green-700 border border-green-200 p-4 rounded-xl transition font-medium">
+                                <i class="fas fa-download"></i> Medications List
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- PDF -->
+                    <div class="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+                        <div class="flex items-center gap-4 mb-5">
+                            <div class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-file-pdf text-red-600 text-xl"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-gray-800">PDF Export</h4>
+                                <p class="text-gray-500 text-sm">Formatted, printable reports — great for doctor visits</p>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <button onclick="window.exportData.toPDF('adherence')"
+                                    class="export-card flex items-center justify-center gap-2 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 p-4 rounded-xl transition font-medium">
+                                <i class="fas fa-download"></i> Adherence Report
+                            </button>
+                            <button onclick="window.exportData.toPDF('history')"
+                                    class="export-card flex items-center justify-center gap-2 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 p-4 rounded-xl transition font-medium">
+                                <i class="fas fa-download"></i> History Report
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Info Note -->
+                    <div class="bg-purple-50 rounded-xl border border-purple-100 p-4">
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-info-circle text-purple-500 mt-0.5"></i>
+                            <div>
+                                <p class="text-sm font-semibold text-purple-800">Export Coverage</p>
+                                <p class="text-sm text-purple-700 mt-1">
+                                    All exports cover the last 30 days of medication history,
+                                    including scheduled doses, actual intake times, and adherence statuses.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- end scrollable content -->
+    </div><!-- end #reports-panel -->
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         PRIORITY 4 — PROFILE & SETTINGS PANEL (full-screen overlay)
+         ═══════════════════════════════════════════════════════════════════ -->
+    <div id="profile-panel" class="hidden fixed inset-0 z-[60] bg-white flex-col">
+
+        <!-- Header -->
+        <div class="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-indigo-600 to-purple-700 text-white flex-shrink-0">
+            <div class="flex items-center gap-4">
+                <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                    <i class="fas fa-user-circle text-white text-lg"></i>
+                </div>
+                <div>
+                    <h2 class="text-xl font-bold">Account &amp; Settings</h2>
+                    <p class="text-indigo-200 text-sm">Manage your profile and preferences</p>
+                </div>
+            </div>
+            <button onclick="window.userProfile.close()"
+                    class="w-10 h-10 bg-white/20 hover:bg-white/30 rounded-xl flex items-center justify-center transition"
+                    title="Close">
+                <i class="fas fa-times text-white text-lg"></i>
+            </button>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="flex border-b bg-white px-6 flex-shrink-0">
+            <button class="profile-tab-btn profile-tab-active py-4 px-6 text-sm font-medium transition"
+                    data-tab="profile" onclick="window.userProfile.showTab('profile')">
+                <i class="fas fa-user mr-2"></i>Profile
+            </button>
+            <button class="profile-tab-btn profile-tab-inactive py-4 px-6 text-sm font-medium transition"
+                    data-tab="settings" onclick="window.userProfile.showTab('settings')">
+                <i class="fas fa-cog mr-2"></i>Settings
+            </button>
+        </div>
+
+        <!-- Scrollable Content -->
+        <div class="flex-1 overflow-y-auto bg-gradient-to-br from-gray-50 to-indigo-50">
+
+            <!-- Profile Tab -->
+            <div class="profile-tab-pane p-6 max-w-2xl mx-auto" data-pane="profile">
+                <div id="profile-tab-content">
+                    <div class="text-center py-16 text-gray-400">
+                        <i class="fas fa-spinner fa-spin text-3xl mb-3"></i>
+                        <p class="text-sm">Loading profile…</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Tab -->
+            <div class="profile-tab-pane hidden p-6 max-w-2xl mx-auto" data-pane="settings">
+                <div id="settings-tab-content">
+                    <div class="text-center py-16 text-gray-400">
+                        <i class="fas fa-spinner fa-spin text-3xl mb-3"></i>
+                        <p class="text-sm">Loading settings…</p>
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- end scrollable content -->
+    </div><!-- end #profile-panel -->
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         PRIORITY 4 — HELP & SUPPORT PANEL (full-screen overlay)
+         ═══════════════════════════════════════════════════════════════════ -->
+    <div id="help-panel" class="hidden fixed inset-0 z-[60] bg-white flex-col">
+
+        <!-- Header -->
+        <div class="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-teal-500 to-cyan-600 text-white flex-shrink-0">
+            <div class="flex items-center gap-4">
+                <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                    <i class="fas fa-question-circle text-white text-lg"></i>
+                </div>
+                <div>
+                    <h2 class="text-xl font-bold">Help &amp; Support</h2>
+                    <p class="text-teal-100 text-sm">Guides, FAQs, and contact information</p>
+                </div>
+            </div>
+            <button onclick="window.helpSupport.close()"
+                    class="w-10 h-10 bg-white/20 hover:bg-white/30 rounded-xl flex items-center justify-center transition"
+                    title="Close">
+                <i class="fas fa-times text-white text-lg"></i>
+            </button>
+        </div>
+
+        <!-- Scrollable Content -->
+        <div class="flex-1 overflow-y-auto bg-gradient-to-br from-gray-50 to-teal-50 p-6">
+            <div class="max-w-3xl mx-auto space-y-10">
+
+                <!-- Getting Started -->
+                <section>
+                    <div class="flex items-center gap-3 mb-5">
+                        <div class="w-9 h-9 bg-teal-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-rocket text-teal-600"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-800">Getting Started</h3>
+                            <p class="text-sm text-gray-500">Follow these 5 steps to get the most out of MediRemind</p>
+                        </div>
+                    </div>
+                    <div id="help-getting-started" class="space-y-3">
+                        <!-- Populated by help.js -->
+                    </div>
+                </section>
+
+                <!-- FAQ -->
+                <section>
+                    <div class="flex items-center gap-3 mb-5">
+                        <div class="w-9 h-9 bg-indigo-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-comments text-indigo-600"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-800">Frequently Asked Questions</h3>
+                            <p class="text-sm text-gray-500">Click a question to expand the answer</p>
+                        </div>
+                    </div>
+                    <div id="help-faq-list" class="space-y-3">
+                        <!-- Populated by help.js -->
+                    </div>
+                </section>
+
+                <!-- Contact / Support card -->
+                <section>
+                    <div class="flex items-center gap-3 mb-5">
+                        <div class="w-9 h-9 bg-purple-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-headset text-purple-600"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-800">Contact &amp; Support</h3>
+                            <p class="text-sm text-gray-500">Still need help? Reach out through any of these channels</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 text-center hover:shadow-md transition">
+                            <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                                <i class="fas fa-envelope text-blue-600 text-xl"></i>
+                            </div>
+                            <h4 class="font-bold text-gray-800 mb-1">Email Support</h4>
+                            <p class="text-xs text-gray-500 mb-3">For billing, account, and technical issues</p>
+                            <a href="mailto:support@mediremind.app"
+                               class="text-sm text-blue-600 hover:underline font-medium">support@mediremind.app</a>
+                        </div>
+
+                        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 text-center hover:shadow-md transition">
+                            <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                                <i class="fas fa-book-open text-green-600 text-xl"></i>
+                            </div>
+                            <h4 class="font-bold text-gray-800 mb-1">Documentation</h4>
+                            <p class="text-xs text-gray-500 mb-3">Full user guides and developer docs</p>
+                            <span class="text-sm text-green-600 font-medium">docs.mediremind.app</span>
+                        </div>
+
+                        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 text-center hover:shadow-md transition">
+                            <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                                <i class="fab fa-github text-purple-600 text-xl"></i>
+                            </div>
+                            <h4 class="font-bold text-gray-800 mb-1">GitHub</h4>
+                            <p class="text-xs text-gray-500 mb-3">Report bugs and request features</p>
+                            <span class="text-sm text-purple-600 font-medium">github.com/mediremind</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- App Version info -->
+                <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+                    <div class="flex items-center justify-between flex-wrap gap-3">
+                        <div class="flex items-center gap-3">
+                            <div class="bg-gradient-to-br from-blue-500 to-indigo-600 w-10 h-10 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-pills text-white"></i>
+                            </div>
+                            <div>
+                                <p class="font-bold text-gray-800">MediRemind</p>
+                                <p class="text-xs text-gray-500">Cloud Medication Manager · v4.0.0</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-xs text-gray-400">Stack: HTML · Tailwind CSS · Vanilla JS · Supabase</p>
+                            <p class="text-xs text-gray-400">For Academic Use</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div><!-- end scrollable content -->
+    </div><!-- end #help-panel -->
+
+    <!-- Footer (pre-login only) -->
+    <footer id="pre-login-footer" class="border-t py-6" style="background:var(--mr-surface);border-color:var(--mr-border)">
+        <div class="container mx-auto px-4 text-center" style="color:var(--mr-text-muted)">
+            <p>MediRemind &bull; Cloud Computing Project &bull; For Academic Use</p>
+            <p class="text-sm mt-2">Take note that this is not a real product.</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <!-- LOAD ORDER IS CRITICAL: -->
+    <!-- 1. Supabase SDK is already loaded in head -->
+    <!-- 2. Our utility scripts -->
+    <script src="js/notifications.js"></script>
+    <script src="js/modal.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/loader.js"></script>
+    <script src="js/mock-data.js"></script>        <!-- Load mock data first -->
+    <script src="js/reminders.js"></script>         <!-- Reminder system (Priority 2) -->
+    <script src="js/medication-form.js"></script>   <!-- Then form -->
+    <script src="js/medications.js"></script>       <!-- Then medications system -->
+    <script src="js/export.js"></script>            <!-- Priority 3: CSV / PDF export -->
+    <script src="js/reports.js"></script>           <!-- Priority 3: Reports & Analytics -->
+    <script src="js/profile.js"></script>           <!-- Priority 4: Profile Management & Settings -->
+    <script src="js/help.js"></script>              <!-- Priority 4: Help & Support -->
+    <script src="js/auth.js"></script>              <!-- Load auth.js LAST because it depends on others -->
+
+    <script>
+        // Initialize Supabase ONCE (replace with your actual keys)
+        const supabaseUrl = 'https://yedokqybvqhcuoyxcaud.supabase.co';
+        const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InllZG9rcXlidnFoY3VveXhjYXVkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAxMDA1NDIsImV4cCI6MjA4NTY3NjU0Mn0.69VhwIJ1pfq-d44PSfJ7GNQEtv7i-VvLpkNPetxjL1w';
+        window.supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
+        
+        console.log('Supabase initialized:', window.supabase);
+        
+        // Check if user is already logged in
+        window.supabase.auth.getSession().then(({ data }) => {
+            if (data.session) {
+                loadDashboard();
+            }
+        });
+        
+        // Global functions for buttons - MUST be on window object
+        // ── Sidebar helpers ──────────────────────────────────────
+        window.openSidebar = function() {
+            document.getElementById('sidebar').classList.add('open');
+            document.getElementById('sidebar-overlay').classList.add('open');
+        };
+        window.closeSidebar = function() {
+            document.getElementById('sidebar').classList.remove('open');
+            document.getElementById('sidebar-overlay').classList.remove('open');
+        };
+
+        window.showLanding = function() {
+            document.getElementById('hero-section').classList.remove('hidden');
+            document.getElementById('auth-forms').classList.add('hidden');
+        };
+
+        window.showLogin = function() {
+            document.getElementById('hero-section').classList.add('hidden');
+            document.getElementById('auth-forms').classList.remove('hidden');
+            document.getElementById('auth-forms').innerHTML = `
+                <div class="mr-card p-8" style="animation:fadeInScale .3s var(--ease-out)">
+                    <h2 class="text-2xl font-bold mb-6" style="color:var(--mr-text)">Sign In</h2>
+                    <div class="space-y-4">
+                        <input type="email" id="login-email" placeholder="Email"
+                               class="w-full p-3 rounded-xl" style="border:1.5px solid var(--mr-border);outline:none;font-family:Inter,sans-serif" onfocus="this.style.borderColor='var(--mr-blue)'" onblur="this.style.borderColor='var(--mr-border)'">
+                        <input type="password" id="login-password" placeholder="Password"
+                               class="w-full p-3 rounded-xl" style="border:1.5px solid var(--mr-border);outline:none;font-family:Inter,sans-serif" onfocus="this.style.borderColor='var(--mr-blue)'" onblur="this.style.borderColor='var(--mr-border)'">
+                        <button onclick="window.login()" class="mr-btn mr-btn-primary w-full py-3 text-base">
+                            Sign In
+                        </button>
+                        <p class="text-center text-sm" style="color:var(--mr-text-sec)">
+                            Don't have an account?
+                            <button onclick="window.showSignup()" style="color:var(--mr-blue-dark);font-weight:600" class="hover:underline">Sign up</button>
+                        </p>
+                    </div>
+                </div>
+            `;
+        };
+
+        window.showSignup = function() {
+            document.getElementById('hero-section').classList.add('hidden');
+            document.getElementById('auth-forms').classList.remove('hidden');
+            document.getElementById('auth-forms').innerHTML = `
+                <div class="mr-card p-8" style="animation:fadeInScale .3s var(--ease-out)">
+                    <h2 class="text-2xl font-bold mb-6" style="color:var(--mr-text)">Create Account</h2>
+                    <div class="space-y-4">
+                        <input type="text" id="signup-name" placeholder="Full Name"
+                               class="w-full p-3 rounded-xl" style="border:1.5px solid var(--mr-border);outline:none;font-family:Inter,sans-serif" onfocus="this.style.borderColor='var(--mr-blue)'" onblur="this.style.borderColor='var(--mr-border)'">
+                        <input type="email" id="signup-email" placeholder="Email"
+                               class="w-full p-3 rounded-xl" style="border:1.5px solid var(--mr-border);outline:none;font-family:Inter,sans-serif" onfocus="this.style.borderColor='var(--mr-blue)'" onblur="this.style.borderColor='var(--mr-border)'">
+                        <input type="password" id="signup-password" placeholder="Password (min. 6 characters)"
+                               class="w-full p-3 rounded-xl" style="border:1.5px solid var(--mr-border);outline:none;font-family:Inter,sans-serif" onfocus="this.style.borderColor='var(--mr-blue)'" onblur="this.style.borderColor='var(--mr-border)'">
+                        <input type="tel" id="signup-phone" placeholder="Phone (optional for SMS)"
+                               class="w-full p-3 rounded-xl" style="border:1.5px solid var(--mr-border);outline:none;font-family:Inter,sans-serif" onfocus="this.style.borderColor='var(--mr-blue)'" onblur="this.style.borderColor='var(--mr-border)'">
+                        <button onclick="window.signup()" class="mr-btn mr-btn-green w-full py-3 text-base">
+                            Create Account
+                        </button>
+                        <p class="text-center text-sm" style="color:var(--mr-text-sec)">
+                            Already have an account?
+                            <button onclick="window.showLogin()" style="color:var(--mr-blue-dark);font-weight:600" class="hover:underline">Sign in</button>
+                        </p>
+                    </div>
+                </div>
+            `;
+        };
+        
+        window.loadDashboard = function() {
+            // Hide pre-login UI
+            document.getElementById('hero-section').classList.add('hidden');
+            document.getElementById('auth-forms').classList.add('hidden');
+            document.getElementById('top-nav').classList.add('hidden');
+            document.getElementById('pre-login-main').classList.add('hidden');
+            document.getElementById('pre-login-footer').classList.add('hidden');
+
+            // Show sidebar dashboard layout
+            document.getElementById('dashboard').classList.remove('hidden');
+
+            // Initialize dashboard
+            initDashboard();
+        };
+        
+        // Dashboard initialization
+        function initDashboard() {
+            console.log('Dashboard initialized');
+            
+            // Load medications using the new system
+            if (typeof window.medications !== 'undefined' && typeof window.medications.load === 'function') {
+                setTimeout(() => {
+                    window.medications.load();
+                }, 100);
+            } else {
+                // Fallback to old system
+                console.warn('Using legacy medication system');
+                setTimeout(() => {
+                    if (typeof loadMockMedications === 'function') {
+                        loadMockMedications();
+                    }
+                }, 500);
+            }
+
+            // ── Priority 2: Initialize Reminder System ────────────────────────
+            if (typeof window.reminders !== 'undefined' && typeof window.reminders.init === 'function') {
+                setTimeout(() => {
+                    window.reminders.init();
+                    console.log('✅ Reminder system initialized');
+                }, 150);
+            } else {
+                console.warn('⚠️ reminders.js not loaded');
+            }
+
+            // ── Priority 3: Initialize Reports System ────────────────────────
+            if (typeof window.reports !== 'undefined' && typeof window.reports.init === 'function') {
+                setTimeout(() => {
+                    window.reports.init();
+                    console.log('✅ Reports system initialized');
+                }, 200);
+            } else {
+                console.warn('⚠️ reports.js not loaded');
+            }
+
+            // ── Priority 4: Initialize Profile & Settings ─────────────────────
+            if (typeof window.userProfile !== 'undefined' && typeof window.userProfile.init === 'function') {
+                setTimeout(() => {
+                    window.userProfile.init();
+                    console.log('✅ Profile system initialized');
+                }, 250);
+            } else {
+                console.warn('⚠️ profile.js not loaded');
+            }
+
+            // ── Priority 4: Initialize Help & Support ─────────────────────────
+            if (typeof window.helpSupport !== 'undefined' && typeof window.helpSupport.init === 'function') {
+                setTimeout(() => {
+                    window.helpSupport.init();
+                    console.log('✅ Help system initialized');
+                }, 300);
+            } else {
+                console.warn('⚠️ help.js not loaded');
+            }
+            
+            // Check if Supabase is available
+            if (!window.supabase) {
+                console.warn('Supabase not initialized, using mock data only');
+                return;
+            }
+            
+            // Update user info in sidebar
+            window.supabase.auth.getUser().then(({ data }) => {
+                if (data.user) {
+                    const userName = data.user.user_metadata?.full_name
+                                 || data.user.email
+                                 || 'User';
+                    const nameEl = document.getElementById('sidebar-user-name');
+                    const avatarEl = document.getElementById('sidebar-avatar');
+                    if (nameEl) nameEl.textContent = userName;
+                    if (avatarEl) avatarEl.textContent = userName.charAt(0).toUpperCase();
+                }
+            }).catch(error => {
+                console.error('Error fetching user:', error);
+            });
+        }
+        
+        window.initDashboard = initDashboard;
+
+        // ── Splash Screen ─────────────────────────────────────────
+        (function runSplash() {
+            const splash = document.getElementById('splash-screen');
+            if (!splash) return;
+            // After 2s, start fade-out (0.5s transition in CSS) = total ~2.5s
+            setTimeout(() => {
+                splash.classList.add('splash-out');
+                // Remove from DOM after transition
+                setTimeout(() => splash.remove(), 600);
+            }, 2000);
+        })();
+
+        // FOR TESTING ONLY - Uncomment to auto-show dashboard
+        // setTimeout(() => {
+        //     window.loadDashboard();
+        // }, 1000);
+    </script>
+</body>
+</html>

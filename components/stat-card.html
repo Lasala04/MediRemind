@@ -1,0 +1,44 @@
+<!-- Stat Card Component -->
+<template id="stat-card-template">
+    <div class="stat-card mr-stat-card" style="cursor:default">
+        <div class="flex items-center justify-between mb-4">
+            <div>
+                <h4 class="text-xs font-semibold uppercase tracking-wider" style="color:var(--mr-text-muted)" data-stat-title></h4>
+                <p class="text-3xl font-bold mt-2" style="color:var(--mr-text)" data-stat-value>0</p>
+            </div>
+            <div class="mr-stat-icon" data-stat-icon-bg>
+                <i class="text-lg" data-stat-icon></i>
+            </div>
+        </div>
+        <div class="pt-4" style="border-top:1px solid var(--mr-border-light)">
+            <p class="text-sm" style="color:var(--mr-text-sec)" data-stat-description></p>
+        </div>
+    </div>
+</template>
+
+<script>
+// Stat card renderer
+window.renderStatCard = function(config) {
+    const template = document.getElementById('stat-card-template');
+    const card = template.content.cloneNode(true);
+    
+    const element = card.querySelector('.stat-card');
+    element.querySelector('[data-stat-title]').textContent = config.title;
+    element.querySelector('[data-stat-value]').textContent = config.value;
+    element.querySelector('[data-stat-description]').textContent = config.description;
+    
+    const icon = element.querySelector('[data-stat-icon]');
+    icon.className = `fas fa-${config.icon}`;
+    icon.style.color = config.color || 'var(--mr-blue-dark)';
+    
+    const iconBg = element.querySelector('[data-stat-icon-bg]');
+    iconBg.style.backgroundColor = `${config.color || '#A8D8EA'}20`;
+    
+    if (config.onClick) {
+        element.style.cursor = 'pointer';
+        element.addEventListener('click', config.onClick);
+    }
+    
+    return element;
+};
+</script>
