@@ -8,7 +8,8 @@ window.mockMedications = [
         time: '08:00',
         status: 'taken',
         lastTaken: 'Today, 8:05 AM',
-        notes: 'Take with breakfast'
+        notes: 'Take with breakfast',
+        createdAt: '2026-02-20T08:00:00.000Z'
     },
     {
         id: '2',
@@ -18,15 +19,23 @@ window.mockMedications = [
         time: '20:00',
         status: 'pending',
         lastTaken: 'Yesterday, 8:10 PM',
-        notes: 'For blood pressure'
+        notes: 'For blood pressure',
+        createdAt: '2026-02-21T20:00:00.000Z'
     }
 ];
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Archived Medications (read-only store)
+// ─────────────────────────────────────────────────────────────────────────────
+window.archivedMedications = [];
+
 // Medication Database CRUD Operations
 window.medicationDB = {
-    // Get all medications
+    // Get all medications (sorted by createdAt descending — newest first)
     getAll: function() {
-        return JSON.parse(JSON.stringify(window.mockMedications));
+        const meds = JSON.parse(JSON.stringify(window.mockMedications));
+        meds.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+        return meds;
     },
     
     // Get single medication
@@ -34,16 +43,17 @@ window.medicationDB = {
         return window.mockMedications.find(m => m.id === id);
     },
     
-    // Add new medication
+    // Add new medication (prepended so newest appears first)
     add: function(medicationData) {
         const newId = (Math.max(...window.mockMedications.map(m => parseInt(m.id)), 0) + 1).toString();
         const newMedication = {
             ...medicationData,
             id: newId,
             status: 'pending',
-            lastTaken: 'Not taken yet'
+            lastTaken: 'Not taken yet',
+            createdAt: new Date().toISOString()
         };
-        window.mockMedications.push(newMedication);
+        window.mockMedications.unshift(newMedication);
         return newMedication;
     },
     
@@ -69,6 +79,19 @@ window.medicationDB = {
             return true;
         }
         return false;
+    },
+
+    // Archive medication (move to read-only archive)
+    archive: function(id) {
+        const index = window.mockMedications.findIndex(m => m.id === id);
+        if (index > -1) {
+            const med = window.mockMedications.splice(index, 1)[0];
+            med.archivedAt = new Date().toISOString();
+            med.archiveReason = 'completed';
+            window.archivedMedications.unshift(med);
+            return med;
+        }
+        return null;
     },
     
     // Update medication status
@@ -252,5 +275,20 @@ window.confirmDeleteMedication = function(id) {
     console.warn('confirmDeleteMedication is deprecated. Use window.medications.confirmDelete() instead.');
     if (window.medications && typeof window.medications.confirmDelete === 'function') {
         window.medications.confirmDelete(id);
+    }
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Archived Medications Database (read-only access)
+// ─────────────────────────────────────────────────────────────────────────────
+window.archivedDB = {
+    getAll: function() {
+        return JSON.parse(JSON.stringify(window.archivedMedications));
+    },
+    getById: function(id) {
+        return window.archivedMedications.find(m => m.id === id);
+    },
+    count: function() {
+        return window.archivedMedications.length;
     }
 };

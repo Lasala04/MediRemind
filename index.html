@@ -116,6 +116,9 @@
                     <button class="mr-nav-item" onclick="window.reminders.openUpcomingModal()">
                         <i class="fas fa-bell"></i> Upcoming Reminders
                     </button>
+                    <button class="mr-nav-item" onclick="window.archivedView.open()">
+                        <i class="fas fa-archive"></i> Archived
+                    </button>
                     <button class="mr-nav-item" onclick="window.reports.open()">
                         <i class="fas fa-chart-bar"></i> Reports
                     </button>
@@ -126,6 +129,9 @@
                     </button>
                     <button class="mr-nav-item" onclick="window.helpSupport.open()">
                         <i class="fas fa-life-ring"></i> Help &amp; Support
+                    </button>
+                    <button class="mr-nav-item" onclick="window.toggleDarkTheme()">
+                        <i class="fas fa-moon" id="theme-toggle-icon"></i> <span id="theme-toggle-label">Dark Mode</span>
                     </button>
                 </nav>
 
@@ -659,6 +665,43 @@
         </div><!-- end scrollable content -->
     </div><!-- end #help-panel -->
 
+    <!-- ═══════════════════════════════════════════════════════════════════
+         ARCHIVED MEDICATIONS PANEL (full-screen overlay)
+         ═══════════════════════════════════════════════════════════════════ -->
+    <div id="archived-panel" class="hidden fixed inset-0 z-[60] flex-col" style="background:var(--mr-surface)">
+
+        <!-- Header -->
+        <div class="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-gray-600 to-gray-800 text-white flex-shrink-0">
+            <div class="flex items-center gap-4">
+                <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                    <i class="fas fa-archive text-white text-lg"></i>
+                </div>
+                <div>
+                    <h2 class="text-xl font-bold">Archived Medications</h2>
+                    <p class="text-gray-300 text-sm">Read-only records of completed medications</p>
+                </div>
+            </div>
+            <button onclick="window.archivedView.close()"
+                    class="w-10 h-10 bg-white/20 hover:bg-white/30 rounded-xl flex items-center justify-center transition"
+                    title="Close">
+                <i class="fas fa-times text-white text-lg"></i>
+            </button>
+        </div>
+
+        <!-- Scrollable Content -->
+        <div class="flex-1 overflow-y-auto p-6" style="background:var(--mr-bg)">
+            <div class="max-w-4xl mx-auto">
+                <div id="archived-list" class="space-y-4">
+                    <div class="text-center py-16" style="color:var(--mr-text-muted)">
+                        <i class="fas fa-archive text-5xl mb-4 opacity-20"></i>
+                        <p class="font-medium" style="color:var(--mr-text-sec)">No archived medications</p>
+                        <p class="text-sm mt-1" style="color:var(--mr-text-muted)">Medications will appear here when archived</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div><!-- end #archived-panel -->
+
     <!-- Footer (pre-login only) -->
     <footer id="pre-login-footer" class="border-t py-6" style="background:var(--mr-surface);border-color:var(--mr-border)">
         <div class="container mx-auto px-4 text-center" style="color:var(--mr-text-muted)">
@@ -724,9 +767,9 @@
                     <h2 class="text-2xl font-bold mb-6" style="color:var(--mr-text)">Sign In</h2>
                     <div class="space-y-4">
                         <input type="email" id="login-email" placeholder="Email"
-                               class="w-full p-3 rounded-xl" style="border:1.5px solid var(--mr-border);outline:none;font-family:Inter,sans-serif" onfocus="this.style.borderColor='var(--mr-blue)'" onblur="this.style.borderColor='var(--mr-border)'">
+                               class="w-full p-3 rounded-xl" style="border:1.5px solid var(--mr-border);outline:none;font-family:Inter,sans-serif;background:var(--mr-surface);color:var(--mr-text)" onfocus="this.style.borderColor='var(--mr-blue)'" onblur="this.style.borderColor='var(--mr-border)'">
                         <input type="password" id="login-password" placeholder="Password"
-                               class="w-full p-3 rounded-xl" style="border:1.5px solid var(--mr-border);outline:none;font-family:Inter,sans-serif" onfocus="this.style.borderColor='var(--mr-blue)'" onblur="this.style.borderColor='var(--mr-border)'">
+                               class="w-full p-3 rounded-xl" style="border:1.5px solid var(--mr-border);outline:none;font-family:Inter,sans-serif;background:var(--mr-surface);color:var(--mr-text)" onfocus="this.style.borderColor='var(--mr-blue)'" onblur="this.style.borderColor='var(--mr-border)'">
                         <button onclick="window.login()" class="mr-btn mr-btn-primary w-full py-3 text-base">
                             Sign In
                         </button>
@@ -747,14 +790,29 @@
                     <h2 class="text-2xl font-bold mb-6" style="color:var(--mr-text)">Create Account</h2>
                     <div class="space-y-4">
                         <input type="text" id="signup-name" placeholder="Full Name"
-                               class="w-full p-3 rounded-xl" style="border:1.5px solid var(--mr-border);outline:none;font-family:Inter,sans-serif" onfocus="this.style.borderColor='var(--mr-blue)'" onblur="this.style.borderColor='var(--mr-border)'">
+                               class="w-full p-3 rounded-xl" style="border:1.5px solid var(--mr-border);outline:none;font-family:Inter,sans-serif;background:var(--mr-surface);color:var(--mr-text)" onfocus="this.style.borderColor='var(--mr-blue)'" onblur="this.style.borderColor='var(--mr-border)'">
                         <input type="email" id="signup-email" placeholder="Email"
-                               class="w-full p-3 rounded-xl" style="border:1.5px solid var(--mr-border);outline:none;font-family:Inter,sans-serif" onfocus="this.style.borderColor='var(--mr-blue)'" onblur="this.style.borderColor='var(--mr-border)'">
+                               class="w-full p-3 rounded-xl" style="border:1.5px solid var(--mr-border);outline:none;font-family:Inter,sans-serif;background:var(--mr-surface);color:var(--mr-text)" onfocus="this.style.borderColor='var(--mr-blue)'" onblur="this.style.borderColor='var(--mr-border)'">
                         <input type="password" id="signup-password" placeholder="Password (min. 6 characters)"
-                               class="w-full p-3 rounded-xl" style="border:1.5px solid var(--mr-border);outline:none;font-family:Inter,sans-serif" onfocus="this.style.borderColor='var(--mr-blue)'" onblur="this.style.borderColor='var(--mr-border)'">
+                               class="w-full p-3 rounded-xl" style="border:1.5px solid var(--mr-border);outline:none;font-family:Inter,sans-serif;background:var(--mr-surface);color:var(--mr-text)" onfocus="this.style.borderColor='var(--mr-blue)'" onblur="this.style.borderColor='var(--mr-border)'">
                         <input type="tel" id="signup-phone" placeholder="Phone (optional for SMS)"
-                               class="w-full p-3 rounded-xl" style="border:1.5px solid var(--mr-border);outline:none;font-family:Inter,sans-serif" onfocus="this.style.borderColor='var(--mr-blue)'" onblur="this.style.borderColor='var(--mr-border)'">
-                        <button onclick="window.signup()" class="mr-btn mr-btn-green w-full py-3 text-base">
+                               class="w-full p-3 rounded-xl" style="border:1.5px solid var(--mr-border);outline:none;font-family:Inter,sans-serif;background:var(--mr-surface);color:var(--mr-text)" onfocus="this.style.borderColor='var(--mr-blue)'" onblur="this.style.borderColor='var(--mr-border)'">
+                        
+                        <!-- Terms and Conditions -->
+                        <div class="rounded-xl p-4" style="border:1.5px solid var(--mr-border);background:var(--mr-surface-alt)">
+                            <div class="flex items-start gap-3">
+                                <input type="checkbox" id="signup-terms" class="mt-1 w-4 h-4 accent-green-500 flex-shrink-0 cursor-pointer"
+                                       onchange="window.updateSignupBtn()">
+                                <label for="signup-terms" class="text-sm cursor-pointer" style="color:var(--mr-text-sec)">
+                                    I have read and agree to the
+                                    <button type="button" onclick="event.preventDefault(); window.showTermsModal();" style="color:var(--mr-blue-dark);font-weight:600" class="hover:underline">Terms and Conditions</button>
+                                    and
+                                    <button type="button" onclick="event.preventDefault(); window.showTermsModal();" style="color:var(--mr-blue-dark);font-weight:600" class="hover:underline">Privacy Policy</button>.
+                                </label>
+                            </div>
+                        </div>
+
+                        <button id="signup-submit-btn" onclick="window.signup()" class="mr-btn mr-btn-green w-full py-3 text-base opacity-50 cursor-not-allowed" disabled>
                             Create Account
                         </button>
                         <p class="text-center text-sm" style="color:var(--mr-text-sec)">
@@ -863,6 +921,173 @@
         }
         
         window.initDashboard = initDashboard;
+
+        // ── Terms and Conditions Modal ────────────────────────────
+        window.showTermsModal = function() {
+            const termsContent = `
+                <div class="space-y-4">
+                    <div class="text-center mb-2">
+                        <div class="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <i class="fas fa-file-contract text-blue-500 text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-800">Terms and Conditions</h3>
+                        <p class="text-gray-500 text-sm mt-1">Last updated: March 2026</p>
+                    </div>
+                    <div class="max-h-64 overflow-y-auto rounded-xl border border-gray-200 p-4 text-sm text-gray-700 space-y-3" style="background:var(--mr-surface-alt)">
+                        <h4 class="font-bold">1. Acceptance of Terms</h4>
+                        <p>By creating an account and using MediRemind, you agree to be bound by these Terms and Conditions. If you do not agree, please do not use the service.</p>
+                        <h4 class="font-bold">2. Description of Service</h4>
+                        <p>MediRemind is a cloud-based medication management and reminder system designed to help users track their medication schedules. The service is provided for informational and organizational purposes only and is not a substitute for professional medical advice.</p>
+                        <h4 class="font-bold">3. User Responsibilities</h4>
+                        <p>You are responsible for maintaining the confidentiality of your account credentials. You agree to provide accurate information when creating your account and to keep your profile information up to date.</p>
+                        <h4 class="font-bold">4. Medical Disclaimer</h4>
+                        <p>MediRemind does not provide medical advice, diagnosis, or treatment. Always consult a qualified healthcare provider with any questions regarding your medication or health conditions. Never disregard professional medical advice based on information from this application.</p>
+                        <h4 class="font-bold">5. Data Privacy</h4>
+                        <p>We collect and process your personal data (name, email, phone, medication records) solely to provide the service. Your data is stored securely using industry-standard encryption. We do not sell or share your personal data with third parties without your consent.</p>
+                        <h4 class="font-bold">6. Limitation of Liability</h4>
+                        <p>MediRemind is provided "as is" without warranties of any kind. We shall not be liable for any damages arising from the use or inability to use the service, including missed medication doses or incorrect reminder schedules.</p>
+                        <h4 class="font-bold">7. Account Termination</h4>
+                        <p>You may delete your account at any time. We reserve the right to suspend or terminate accounts that violate these terms.</p>
+                        <h4 class="font-bold">8. Changes to Terms</h4>
+                        <p>We may update these terms from time to time. Continued use of the service after changes constitutes acceptance of the new terms.</p>
+                        <h4 class="font-bold">9. Academic Use Notice</h4>
+                        <p>This application is developed for academic and demonstration purposes. It is not intended for production medical use.</p>
+                    </div>
+                    <button onclick="window.modal.close()" class="w-full py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl font-semibold hover:from-blue-600 hover:to-blue-700 transition shadow-md">
+                        I Understand
+                    </button>
+                </div>
+            `;
+            window.modal.open(termsContent, { title: '', size: 'lg' });
+        };
+
+        window.updateSignupBtn = function() {
+            const checkbox = document.getElementById('signup-terms');
+            const btn = document.getElementById('signup-submit-btn');
+            if (!checkbox || !btn) return;
+            if (checkbox.checked) {
+                btn.disabled = false;
+                btn.classList.remove('opacity-50', 'cursor-not-allowed');
+            } else {
+                btn.disabled = true;
+                btn.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+        };
+
+        // ── Archived Medications View ─────────────────────────────
+        window.archivedView = {
+            open: function() {
+                const panel = document.getElementById('archived-panel');
+                if (!panel) return;
+                panel.classList.remove('hidden');
+                panel.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+                this.render();
+            },
+            close: function() {
+                const panel = document.getElementById('archived-panel');
+                if (!panel) return;
+                panel.classList.add('hidden');
+                panel.style.display = 'none';
+                document.body.style.overflow = '';
+            },
+            render: function() {
+                const container = document.getElementById('archived-list');
+                if (!container) return;
+
+                const archived = window.archivedDB.getAll();
+                if (archived.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-center py-16" style="color:var(--mr-text-muted)">
+                            <i class="fas fa-archive text-5xl mb-4 opacity-20"></i>
+                            <p class="font-medium" style="color:var(--mr-text-sec)">No archived medications</p>
+                            <p class="text-sm mt-1" style="color:var(--mr-text-muted)">Medications will appear here when archived from the dashboard</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = archived.map(med => {
+                    const archivedDate = med.archivedAt
+                        ? new Date(med.archivedAt).toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric', hour:'2-digit', minute:'2-digit' })
+                        : 'Unknown';
+                    return `
+                        <div class="medication-card rounded-xl p-6" style="background:var(--mr-surface);border:1px solid var(--mr-border);opacity:0.95">
+                            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                                <div class="flex-1">
+                                    <div class="flex flex-col sm:flex-row items-start sm:items-center mb-4 gap-3">
+                                        <div class="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0" style="background:var(--mr-surface-alt)">
+                                            <i class="fas fa-archive text-lg" style="color:var(--mr-text-muted)"></i>
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <h4 class="text-xl font-bold truncate" style="color:var(--mr-text)">${med.name}</h4>
+                                            <p style="color:var(--mr-text-sec)">${med.dosage} &bull; ${med.frequency}</p>
+                                        </div>
+                                        <span class="self-start sm:self-center px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600 border border-gray-200">
+                                            <i class="fas fa-lock mr-1"></i>Archived
+                                        </span>
+                                    </div>
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm mb-4" style="color:var(--mr-text-sec)">
+                                        <div class="flex items-center">
+                                            <i class="far fa-clock mr-3" style="color:var(--mr-blue-dark)"></i>
+                                            <div>
+                                                <div class="font-medium">Scheduled Time</div>
+                                                <div class="font-bold">${med.time}</div>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center">
+                                            <i class="far fa-calendar-check mr-3" style="color:var(--mr-green-dark)"></i>
+                                            <div>
+                                                <div class="font-medium">Last Taken</div>
+                                                <div>${med.lastTaken || 'N/A'}</div>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center">
+                                            <i class="fas fa-box-archive mr-3" style="color:var(--mr-text-muted)"></i>
+                                            <div>
+                                                <div class="font-medium">Archived On</div>
+                                                <div>${archivedDate}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    ${med.notes ? `
+                                    <div class="rounded-lg p-3" style="background:var(--mr-surface-alt);border:1px solid var(--mr-border-light)">
+                                        <div class="text-xs mb-1" style="color:var(--mr-text-muted)">Notes</div>
+                                        <div class="text-sm" style="color:var(--mr-text-sec)">${med.notes}</div>
+                                    </div>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+        };
+
+        // ── Dark Theme Toggle ─────────────────────────────────────
+        window.toggleDarkTheme = function() {
+            const isDark = document.documentElement.classList.toggle('dark-theme');
+            localStorage.setItem('mediremind_dark_theme', isDark ? 'true' : 'false');
+            const icon = document.getElementById('theme-toggle-icon');
+            const label = document.getElementById('theme-toggle-label');
+            if (icon) icon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+            if (label) label.textContent = isDark ? 'Light Mode' : 'Dark Mode';
+        };
+
+        // Apply saved theme preference on load
+        (function applySavedTheme() {
+            const saved = localStorage.getItem('mediremind_dark_theme');
+            if (saved === 'true') {
+                document.documentElement.classList.add('dark-theme');
+                // Update toggle icon/label after DOM is ready
+                setTimeout(() => {
+                    const icon = document.getElementById('theme-toggle-icon');
+                    const label = document.getElementById('theme-toggle-label');
+                    if (icon) icon.className = 'fas fa-sun';
+                    if (label) label.textContent = 'Light Mode';
+                }, 100);
+            }
+        })();
 
         // ── Splash Screen ─────────────────────────────────────────
         (function runSplash() {

@@ -95,6 +95,11 @@ window.medications = {
                                 title="Edit">
                             <i class="fas fa-edit"></i>
                         </button>
+                        <button onclick="window.medications.confirmArchive('${med.id}')" 
+                                class="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 transition flex items-center justify-center flex-shrink-0"
+                                title="Archive">
+                            <i class="fas fa-archive"></i>
+                        </button>
                         <button onclick="window.medications.confirmDelete('${med.id}')" 
                                 class="w-10 h-10 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition flex items-center justify-center flex-shrink-0"
                                 title="Delete">
@@ -210,6 +215,34 @@ window.medications = {
                 confirmText: 'Delete',
                 cancelText: 'Cancel',
                 confirmClass: 'bg-red-500 hover:bg-red-600'
+            }
+        );
+    },
+
+    // Archive medication (move to read-only archive)
+    confirmArchive: function(id) {
+        const medication = window.medicationDB.getById(id);
+        if (!medication) {
+            window.notify.error('Medication not found');
+            return;
+        }
+
+        window.modal.confirm(
+            `Archive <strong>${medication.name}</strong>? It will be moved to archived records and preserved as read-only.`,
+            () => {
+                const archived = window.medicationDB.archive(id);
+                if (archived) {
+                    window.notify.success(`${medication.name} archived successfully`);
+                    this.load();
+                } else {
+                    window.notify.error('Failed to archive medication');
+                }
+            },
+            {
+                title: 'Archive Medication',
+                confirmText: 'Archive',
+                cancelText: 'Cancel',
+                confirmClass: 'bg-indigo-500 hover:bg-indigo-600'
             }
         );
     }

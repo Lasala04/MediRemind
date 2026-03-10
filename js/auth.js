@@ -37,6 +37,7 @@ window.signup = async function() {
     const email = document.getElementById('signup-email').value;
     const password = document.getElementById('signup-password').value;
     const phone = document.getElementById('signup-phone').value;
+    const termsCheckbox = document.getElementById('signup-terms');
     
     if (!name || !email || !password) {
         window.notify.warning('Please fill in all required fields');
@@ -45,6 +46,11 @@ window.signup = async function() {
     
     if (password.length < 6) {
         window.notify.warning('Password must be at least 6 characters');
+        return;
+    }
+
+    if (!termsCheckbox || !termsCheckbox.checked) {
+        window.notify.warning('You must accept the Terms and Conditions to create an account');
         return;
     }
     
@@ -130,9 +136,12 @@ window.logout = async function() {
         }
 
         // Close full-screen overlay panels
-        ['reports-panel', 'profile-panel', 'help-panel'].forEach(id => {
+        ['reports-panel', 'profile-panel', 'help-panel', 'archived-panel'].forEach(id => {
             const panel = document.getElementById(id);
-            if (panel) panel.classList.add('hidden');
+            if (panel) {
+                panel.classList.add('hidden');
+                panel.style.display = 'none';
+            }
         });
 
         // Close upcoming-reminders overlay

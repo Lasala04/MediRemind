@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Build output
+dist/
+build/
+out/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor directories
+.vscode/settings.json
+.idea/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Supabase local config (if ever used)
+.supabase/
