@@ -551,7 +551,6 @@ window.userProfile = (function () {
     /* ── Init ───────────────────────────────────────────────────── */
     function init() {
         // Nothing to seed — settings loaded from localStorage on module init
-        console.log('✅ userProfile initialized | settings:', _settings);
     }
 
     return {

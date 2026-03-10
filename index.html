@@ -734,8 +734,6 @@
         const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InllZG9rcXlidnFoY3VveXhjYXVkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAxMDA1NDIsImV4cCI6MjA4NTY3NjU0Mn0.69VhwIJ1pfq-d44PSfJ7GNQEtv7i-VvLpkNPetxjL1w';
         window.supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
         
-        console.log('Supabase initialized:', window.supabase);
-        
         // Check if user is already logged in
         window.supabase.auth.getSession().then(({ data }) => {
             if (data.session) {
@@ -841,8 +839,6 @@
         
         // Dashboard initialization
         function initDashboard() {
-            console.log('Dashboard initialized');
-            
             // Load medications using the new system
             if (typeof window.medications !== 'undefined' && typeof window.medications.load === 'function') {
                 setTimeout(() => {
@@ -862,7 +858,6 @@
             if (typeof window.reminders !== 'undefined' && typeof window.reminders.init === 'function') {
                 setTimeout(() => {
                     window.reminders.init();
-                    console.log('✅ Reminder system initialized');
                 }, 150);
             } else {
                 console.warn('⚠️ reminders.js not loaded');
@@ -872,7 +867,6 @@
             if (typeof window.reports !== 'undefined' && typeof window.reports.init === 'function') {
                 setTimeout(() => {
                     window.reports.init();
-                    console.log('✅ Reports system initialized');
                 }, 200);
             } else {
                 console.warn('⚠️ reports.js not loaded');
@@ -882,7 +876,6 @@
             if (typeof window.userProfile !== 'undefined' && typeof window.userProfile.init === 'function') {
                 setTimeout(() => {
                     window.userProfile.init();
-                    console.log('✅ Profile system initialized');
                 }, 250);
             } else {
                 console.warn('⚠️ profile.js not loaded');
@@ -892,7 +885,6 @@
             if (typeof window.helpSupport !== 'undefined' && typeof window.helpSupport.init === 'function') {
                 setTimeout(() => {
                     window.helpSupport.init();
-                    console.log('✅ Help system initialized');
                 }, 300);
             } else {
                 console.warn('⚠️ help.js not loaded');

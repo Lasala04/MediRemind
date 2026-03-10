@@ -170,7 +170,6 @@ window.helpSupport = (function () {
 
     /* ── Init ───────────────────────────────────────────────────── */
     function init() {
-        console.log('✅ helpSupport initialized');
     }
 
     return { open, close, toggleFAQ, init };

@@ -15,7 +15,6 @@ window.reports = (function () {
         if (_initialized) return;
         if (window.mockHistory && window.historyDB && window.historyDB.data.length === 0) {
             window.historyDB.data = JSON.parse(JSON.stringify(window.mockHistory));
-            console.log('✅ historyDB seeded with', window.historyDB.data.length, 'records');
         }
         _initialized = true;
     }
@@ -414,5 +413,3 @@ window.reports = (function () {
     };
 
 })();
-
-console.log('✅ reports.js loaded');

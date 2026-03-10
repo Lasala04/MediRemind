@@ -225,5 +225,3 @@ window.exportData = {
         return new Date().toISOString().split('T')[0];
     }
 };
-
-console.log('✅ export.js loaded');
