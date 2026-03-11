@@ -1,7 +1,10 @@
 // medication-form.js - Updated with proper save functionality
 window.medicationForm = {
+    _editingId: null,
+
     open: function(medicationData = null) {
         const isEditing = medicationData !== null;
+        this._editingId = isEditing ? medicationData.id : null;
         
         const formContent = `
             <div class="space-y-6">
@@ -81,7 +84,7 @@ window.medicationForm = {
                             class="flex-1 py-3 border-2 border-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition">
                         Cancel
                     </button>
-                    <button onclick="window.medicationForm.saveMedication(${isEditing ? JSON.stringify(medicationData?.id) : 'null'})" 
+                    <button id="med-form-save-btn" onclick="window.medicationForm.saveMedication()" 
                             class="flex-1 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl font-medium hover:from-blue-600 hover:to-blue-700 transition shadow-lg">
                         <i class="fas fa-save mr-2"></i> ${isEditing ? 'Update' : 'Save'} Medication
                     </button>
@@ -95,7 +98,8 @@ window.medicationForm = {
         });
     },
     
-    saveMedication: async function(medicationId = null) {
+    saveMedication: async function() {
+        const medicationId = this._editingId;
         // Gather form data
         const name = document.getElementById('form-med-name').value.trim();
         const dosage = document.getElementById('form-med-dosage').value.trim();
@@ -111,7 +115,7 @@ window.medicationForm = {
         
         try {
             // Show loading
-            const saveBtn = document.querySelector('.modal-content button:last-child');
+            const saveBtn = document.getElementById('med-form-save-btn');
             const originalText = saveBtn ? saveBtn.innerHTML : '';
             if (saveBtn) {
                 saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving...';
@@ -127,26 +131,26 @@ window.medicationForm = {
                 notes: notes || ''
             };
             
-            // Save to database
+            // Save to database (awaits actual Supabase write)
             let result;
             if (medicationId) {
                 // Update existing medication
-                result = window.medicationDB.update(medicationId, medicationData);
+                result = await window.medicationDB.update(medicationId, medicationData);
                 if (result) {
                     window.notify.success('Medication updated successfully!');
                 }
             } else {
                 // Add new medication
-                result = window.medicationDB.add(medicationData);
+                result = await window.medicationDB.add(medicationData);
                 if (result) {
                     window.notify.success('Medication added successfully!');
                 }
             }
             
-            // Simulate API delay
-            await new Promise(resolve => setTimeout(resolve, 500));
-            
             if (result) {
+                // Clear editing state
+                this._editingId = null;
+
                 // Close modal
                 window.modal.close();
                 
@@ -161,13 +165,10 @@ window.medicationForm = {
         } catch (error) {
             console.error('Save error:', error);
             window.notify.error('Error saving medication: ' + error.message);
-        } finally {
-            // Restore button
-            const saveBtn = document.querySelector('.modal-content button:last-child');
-            if (saveBtn) {
-                saveBtn.innerHTML = medicationId ? '<i class="fas fa-save mr-2"></i> Update Medication' : '<i class="fas fa-save mr-2"></i> Save Medication';
-                saveBtn.disabled = false;
-            }
+
+            // Reset state and close modal so UI returns to a clean state
+            this._editingId = null;
+            window.modal.close();
         }
     }
 };

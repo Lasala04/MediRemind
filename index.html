@@ -56,6 +56,12 @@
                     <div class="text-sm" style="color:var(--mr-text-muted)">
                         <i class="fas fa-cloud mr-1"></i> Cloud Powered
                     </div>
+                    <button onclick="window.toggleDarkTheme()" class="flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium transition"
+                            style="background:var(--mr-surface-alt);color:var(--mr-text-sec);border:1px solid var(--mr-border)"
+                            title="Toggle Dark/Light Mode" id="landing-theme-toggle">
+                        <i class="fas fa-moon" id="landing-theme-icon"></i>
+                        <span id="landing-theme-label">Dark Mode</span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -618,8 +624,7 @@
                             </div>
                             <h4 class="font-bold text-gray-800 mb-1">Email Support</h4>
                             <p class="text-xs text-gray-500 mb-3">For billing, account, and technical issues</p>
-                            <a href="mailto:support@mediremind.app"
-                               class="text-sm text-blue-600 hover:underline font-medium">support@mediremind.app</a>
+                            <span class="text-sm text-blue-600 font-medium break-all">dlasala_230000000999@uic.edu.ph</span>
                         </div>
 
                         <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 text-center hover:shadow-md transition">
@@ -628,7 +633,7 @@
                             </div>
                             <h4 class="font-bold text-gray-800 mb-1">Documentation</h4>
                             <p class="text-xs text-gray-500 mb-3">Full user guides and developer docs</p>
-                            <span class="text-sm text-green-600 font-medium">docs.mediremind.app</span>
+                            <span class="text-sm text-green-600 font-medium break-all">https://github.com/Lasala04/MediRemind/blob/main/README.md</span>
                         </div>
 
                         <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 text-center hover:shadow-md transition">
@@ -637,7 +642,7 @@
                             </div>
                             <h4 class="font-bold text-gray-800 mb-1">GitHub</h4>
                             <p class="text-xs text-gray-500 mb-3">Report bugs and request features</p>
-                            <span class="text-sm text-purple-600 font-medium">github.com/mediremind</span>
+                            <span class="text-sm text-purple-600 font-medium break-all">https://github.com/Lasala04</span>
                         </div>
                     </div>
                 </section>
@@ -719,6 +724,7 @@
     <script src="js/utils.js"></script>
     <script src="js/loader.js"></script>
     <script src="js/mock-data.js"></script>        <!-- Load mock data first -->
+    <script src="js/supabase-db.js"></script>       <!-- Supabase data-access layer (cache-and-sync) -->
     <script src="js/reminders.js"></script>         <!-- Reminder system (Priority 2) -->
     <script src="js/medication-form.js"></script>   <!-- Then form -->
     <script src="js/medications.js"></script>       <!-- Then medications system -->
@@ -838,7 +844,14 @@
         };
         
         // Dashboard initialization
-        function initDashboard() {
+        async function initDashboard() {
+            // Load data from Supabase (falls back to mock data on failure)
+            if (window.supabaseDB) {
+                window.loader.show('Loading your medications\u2026');
+                await window.supabaseDB.init();
+                window.loader.hide();
+            }
+
             // Load medications using the new system
             if (typeof window.medications !== 'undefined' && typeof window.medications.load === 'function') {
                 setTimeout(() => {
@@ -1064,6 +1077,11 @@
             const label = document.getElementById('theme-toggle-label');
             if (icon) icon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
             if (label) label.textContent = isDark ? 'Light Mode' : 'Dark Mode';
+            // Sync landing page toggle
+            const landingIcon = document.getElementById('landing-theme-icon');
+            const landingLabel = document.getElementById('landing-theme-label');
+            if (landingIcon) landingIcon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+            if (landingLabel) landingLabel.textContent = isDark ? 'Light Mode' : 'Dark Mode';
         };
 
         // Apply saved theme preference on load
@@ -1077,6 +1095,11 @@
                     const label = document.getElementById('theme-toggle-label');
                     if (icon) icon.className = 'fas fa-sun';
                     if (label) label.textContent = 'Light Mode';
+                    // Landing page toggle
+                    const landingIcon = document.getElementById('landing-theme-icon');
+                    const landingLabel = document.getElementById('landing-theme-label');
+                    if (landingIcon) landingIcon.className = 'fas fa-sun';
+                    if (landingLabel) landingLabel.textContent = 'Light Mode';
                 }, 100);
             }
         })();

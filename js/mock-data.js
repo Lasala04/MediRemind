@@ -1,5 +1,19 @@
-// mock-data.js - Updated with CRUD operations
-window.mockMedications = [
+// mock-data.js - Updated with CRUD operations + localStorage persistence
+
+// ─────────────────────────────────────────────────────────────────────────────
+// localStorage persistence helpers
+// ─────────────────────────────────────────────────────────────────────────────
+window._persistMedications = function() {
+    try {
+        localStorage.setItem('mr_medications', JSON.stringify(window.mockMedications));
+        localStorage.setItem('mr_archived_medications', JSON.stringify(window.archivedMedications));
+    } catch(e) {
+        console.warn('[mock-data] Could not persist to localStorage:', e.message);
+    }
+};
+
+// Hardcoded defaults (used only on first visit if nothing is stored)
+var _defaultMedications = [
     {
         id: '1',
         name: 'Metformin',
@@ -24,10 +38,38 @@ window.mockMedications = [
     }
 ];
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Archived Medications (read-only store)
-// ─────────────────────────────────────────────────────────────────────────────
-window.archivedMedications = [];
+// Try to restore from localStorage; fall back to hardcoded defaults
+(function _restoreFromStorage() {
+    try {
+        var saved = localStorage.getItem('mr_medications');
+        if (saved) {
+            var parsed = JSON.parse(saved);
+            if (Array.isArray(parsed)) {
+                window.mockMedications = parsed;
+            } else {
+                window.mockMedications = _defaultMedications.slice();
+            }
+        } else {
+            window.mockMedications = _defaultMedications.slice();
+        }
+
+        var savedArchived = localStorage.getItem('mr_archived_medications');
+        if (savedArchived) {
+            var parsedArchived = JSON.parse(savedArchived);
+            if (Array.isArray(parsedArchived)) {
+                window.archivedMedications = parsedArchived;
+            } else {
+                window.archivedMedications = [];
+            }
+        } else {
+            window.archivedMedications = [];
+        }
+    } catch(e) {
+        console.warn('[mock-data] Could not restore from localStorage:', e.message);
+        window.mockMedications = _defaultMedications.slice();
+        window.archivedMedications = [];
+    }
+})();
 
 // Medication Database CRUD Operations
 window.medicationDB = {
@@ -54,6 +96,7 @@ window.medicationDB = {
             createdAt: new Date().toISOString()
         };
         window.mockMedications.unshift(newMedication);
+        window._persistMedications();
         return newMedication;
     },
     
@@ -66,6 +109,7 @@ window.medicationDB = {
                 ...medicationData,
                 id: id // Keep original ID
             };
+            window._persistMedications();
             return window.mockMedications[index];
         }
         return null;
@@ -76,6 +120,7 @@ window.medicationDB = {
         const index = window.mockMedications.findIndex(m => m.id === id);
         if (index > -1) {
             window.mockMedications.splice(index, 1);
+            window._persistMedications();
             return true;
         }
         return false;
@@ -89,6 +134,7 @@ window.medicationDB = {
             med.archivedAt = new Date().toISOString();
             med.archiveReason = 'completed';
             window.archivedMedications.unshift(med);
+            window._persistMedications();
             return med;
         }
         return null;
@@ -113,6 +159,7 @@ window.medicationDB = {
                 ? `Yesterday, ${timeStr}`
                 : `${Math.floor((new Date() - now) / (1000 * 60 * 60 * 24))} days ago`;
             
+            window._persistMedications();
             return true;
         }
         return false;

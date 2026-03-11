@@ -153,6 +153,11 @@ window.logout = async function() {
             window.reminders.cleanup();
         }
 
+        // Reset Supabase data layer so next login re-fetches fresh user data
+        if (window.supabaseDB && typeof window.supabaseDB.reset === 'function') {
+            window.supabaseDB.reset();
+        }
+
         // Hide the dashboard immediately
         document.getElementById('dashboard').classList.add('hidden');
 
@@ -185,10 +190,17 @@ window.logout = async function() {
             document.getElementById('auth-forms').classList.add('hidden');
 
             // Reset nav-links to pre-login state
+            const isDark = document.documentElement.classList.contains('dark-theme');
             document.getElementById('nav-links').innerHTML = `
                 <div class="text-sm" style="color:var(--mr-text-muted)">
                     <i class="fas fa-cloud mr-1"></i> Cloud Powered
                 </div>
+                <button onclick="window.toggleDarkTheme()" class="flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium transition"
+                        style="background:var(--mr-surface-alt);color:var(--mr-text-sec);border:1px solid var(--mr-border)"
+                        title="Toggle Dark/Light Mode" id="landing-theme-toggle">
+                    <i class="${isDark ? 'fas fa-sun' : 'fas fa-moon'}" id="landing-theme-icon"></i>
+                    <span id="landing-theme-label">${isDark ? 'Light Mode' : 'Dark Mode'}</span>
+                </button>
             `;
         }, 2000);
 

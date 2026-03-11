@@ -1,6 +1,6 @@
 /* ══════════════════════════════════════════════════════════════════════════════
    MediRemind — Spotify-Inspired Design System
-   Palette: Light Blue #A8D8EA · Sage Green #B2C9AD · Muted Yellow #F5E6A3
+   Palette: Sky Blue #60B5D1 · Leaf Green #7BC47F · Golden Yellow #FFD966
    Typography: Inter (sans-serif)
    ══════════════════════════════════════════════════════════════════════════════ */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
@@ -8,28 +8,28 @@
 /* ── Design Tokens ────────────────────────────────────────────────────────── */
 :root {
     /* Primary palette */
-    --mr-blue:        #A8D8EA;
-    --mr-blue-light:  #d0ecf5;
-    --mr-blue-dark:   #7bbfd6;
-    --mr-green:       #B2C9AD;
-    --mr-green-light: #d4e3d0;
-    --mr-green-dark:  #8fad87;
-    --mr-yellow:      #F5E6A3;
-    --mr-yellow-light:#faf3d1;
-    --mr-yellow-dark: #e6cf6a;
+    --mr-blue:        #60B5D1;
+    --mr-blue-light:  #D6EFF8;
+    --mr-blue-dark:   #3A93B0;
+    --mr-green:       #7BC47F;
+    --mr-green-light: #DFF3E0;
+    --mr-green-dark:  #4A9E50;
+    --mr-yellow:      #FFD966;
+    --mr-yellow-light:#FFF5D6;
+    --mr-yellow-dark: #E6AC00;
 
     /* Neutrals */
-    --mr-bg:          #f5f7fa;
-    --mr-surface:     #ffffff;
-    --mr-surface-alt: #f0f2f5;
-    --mr-border:      #e8eaed;
-    --mr-border-light:#f0f1f3;
-    --mr-text:        #1a1a2e;
-    --mr-text-sec:    #5a5f7a;
-    --mr-text-muted:  #9198a8;
+    --mr-bg:          #F0F4F8;
+    --mr-surface:     #FFFFFF;
+    --mr-surface-alt: #EDF1F7;
+    --mr-border:      #D8DDE6;
+    --mr-border-light:#E8ECF2;
+    --mr-text:        #1B2A4A;
+    --mr-text-sec:    #4A5578;
+    --mr-text-muted:  #8893A7;
 
     /* Sidebar */
-    --mr-sidebar-bg:  #f0f2f5;
+    --mr-sidebar-bg:  #E8EDF4;
     --mr-sidebar-w:   260px;
 
     /* Radii (Spotify: generous rounding) */
@@ -82,11 +82,11 @@ body {
     background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-    background: #c4c8cf;
+    background: #B8BFC9;
     border-radius: var(--radius-full);
 }
 ::-webkit-scrollbar-thumb:hover {
-    background: #9198a8;
+    background: #8893A7;
 }
 
 /* ── Typography helpers ───────────────────────────────────────────────────── */
@@ -117,8 +117,8 @@ h1, h2, h3, h4, h5, h6 {
     to { transform: rotate(360deg); }
 }
 @keyframes pulse-glow {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(168,216,234,0.5); }
-    50%      { box-shadow: 0 0 0 12px rgba(168,216,234,0); }
+    0%, 100% { box-shadow: 0 0 0 0 rgba(96,181,209,0.5); }
+    50%      { box-shadow: 0 0 0 12px rgba(96,181,209,0); }
 }
 @keyframes pulse {
     0%, 100% { opacity: 1; }
@@ -149,9 +149,9 @@ body::before {
     position: fixed;
     inset: 0;
     z-index: -1;
-    background: radial-gradient(ellipse at 20% 50%, rgba(168,216,234,0.25) 0%, transparent 50%),
-                radial-gradient(ellipse at 80% 20%, rgba(178,201,173,0.2) 0%, transparent 50%),
-                radial-gradient(ellipse at 50% 80%, rgba(245,230,163,0.15) 0%, transparent 50%);
+    background: radial-gradient(ellipse at 20% 50%, rgba(96,181,209,0.2) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 20%, rgba(123,196,127,0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 80%, rgba(255,217,102,0.12) 0%, transparent 50%);
     background-size: 200% 200%;
     animation: ambientGlow 20s ease-in-out infinite;
     pointer-events: none;
@@ -265,7 +265,7 @@ body::before {
     transition: color var(--t-fast) ease;
 }
 .mr-nav-item:hover {
-    background: rgba(168,216,234,0.25);
+    background: rgba(96,181,209,0.2);
     color: var(--mr-text);
 }
 .mr-nav-item.active {
@@ -395,30 +395,30 @@ body::before {
 .mr-btn-primary {
     background: linear-gradient(135deg, var(--mr-blue), var(--mr-blue-dark));
     color: #fff;
-    box-shadow: 0 2px 8px rgba(168,216,234,0.4);
+    box-shadow: 0 2px 8px rgba(96,181,209,0.4);
 }
 .mr-btn-primary:hover {
-    box-shadow: 0 4px 16px rgba(168,216,234,0.6);
+    box-shadow: 0 4px 16px rgba(96,181,209,0.6);
     filter: brightness(1.05);
 }
 
 .mr-btn-green {
     background: linear-gradient(135deg, var(--mr-green), var(--mr-green-dark));
     color: #fff;
-    box-shadow: 0 2px 8px rgba(178,201,173,0.4);
+    box-shadow: 0 2px 8px rgba(123,196,127,0.4);
 }
 .mr-btn-green:hover {
-    box-shadow: 0 4px 16px rgba(178,201,173,0.6);
+    box-shadow: 0 4px 16px rgba(123,196,127,0.6);
     filter: brightness(1.05);
 }
 
 .mr-btn-yellow {
     background: linear-gradient(135deg, var(--mr-yellow), var(--mr-yellow-dark));
     color: var(--mr-text);
-    box-shadow: 0 2px 8px rgba(245,230,163,0.4);
+    box-shadow: 0 2px 8px rgba(255,217,102,0.4);
 }
 .mr-btn-yellow:hover {
-    box-shadow: 0 4px 16px rgba(245,230,163,0.5);
+    box-shadow: 0 4px 16px rgba(255,217,102,0.5);
     filter: brightness(1.03);
 }
 
@@ -525,7 +525,7 @@ body::before {
 }
 .modal-content::-webkit-scrollbar { width: 6px; }
 .modal-content::-webkit-scrollbar-track { background: transparent; }
-.modal-content::-webkit-scrollbar-thumb { background: #c4c8cf; border-radius: var(--radius-full); }
+.modal-content::-webkit-scrollbar-thumb { background: #B8BFC9; border-radius: var(--radius-full); }
 
 /* ══════════════════════════════════════════════════════════════════════════════
    MEDICATION CARDS
@@ -708,7 +708,7 @@ input[type="checkbox"].sr-only:checked + div + div {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, #f5f7fa 0%, var(--mr-blue-light) 50%, var(--mr-green-light) 100%);
+    background: linear-gradient(135deg, #F0F4F8 0%, var(--mr-blue-light) 50%, var(--mr-green-light) 100%);
     opacity: 1;
     transition: opacity 0.5s var(--ease-out);
 }
@@ -724,7 +724,7 @@ input[type="checkbox"].sr-only:checked + div + div {
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 8px 32px rgba(168,216,234,0.4);
+    box-shadow: 0 8px 32px rgba(96,181,209,0.4);
     animation: splashLogoIn 0.8s var(--ease-out) forwards;
     opacity: 0;
 }
