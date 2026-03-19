@@ -161,10 +161,10 @@
 
             <!-- ── Main Content ────────────────────────────────────── -->
             <div class="mr-main">
-                <!-- Mobile top-bar with hamburger -->
-                <div class="flex items-center gap-3 p-4 md:hidden" style="border-bottom:1px solid var(--mr-border)">
-                    <button onclick="openSidebar()" class="w-9 h-9 rounded-lg flex items-center justify-center" style="background:var(--mr-surface-alt)">
-                        <i class="fas fa-bars" style="color:var(--mr-text-sec)"></i>
+                <!-- Top-bar with hamburger (always visible) -->
+                <div class="flex items-center gap-3 p-4" style="border-bottom:1px solid var(--mr-border)">
+                    <button onclick="window.toggleSidebar()" class="mr-sidebar-toggle" id="sidebar-toggle-btn" title="Toggle sidebar">
+                        <i class="fas fa-bars" id="sidebar-toggle-icon"></i>
                     </button>
                     <span class="font-bold" style="color:var(--mr-text)">MediRemind</span>
                 </div>
@@ -758,6 +758,122 @@
             document.getElementById('sidebar-overlay').classList.remove('open');
         };
 
+        // ── Sidebar collapse/expand toggle (desktop + mobile) ─────
+        window.toggleSidebar = function() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            if (!sidebar) return;
+            // On mobile (≤768px), use the existing open/close behavior
+            if (window.innerWidth <= 768) {
+                if (sidebar.classList.contains('open')) {
+                    window.closeSidebar();
+                } else {
+                    window.openSidebar();
+                }
+                return;
+            }
+            // On desktop, toggle collapsed class
+            const isCollapsed = sidebar.classList.contains('collapsed');
+            if (isCollapsed) {
+                sidebar.classList.remove('collapsed');
+                sidebar.classList.remove('open');
+                if (overlay) overlay.classList.remove('open');
+            } else {
+                sidebar.classList.add('collapsed');
+            }
+        };
+
+        // ── Password show/hide toggle ─────────────────────────────
+        window.togglePasswordVisibility = function(inputId, btn) {
+            const input = document.getElementById(inputId);
+            if (!input) return;
+            const icon = btn.querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                if (icon) { icon.classList.remove('fa-eye'); icon.classList.add('fa-eye-slash'); }
+            } else {
+                input.type = 'password';
+                if (icon) { icon.classList.remove('fa-eye-slash'); icon.classList.add('fa-eye'); }
+            }
+        };
+
+        // ── Real-time password validation hints ───────────────────
+        window.validatePasswordHints = function(pw) {
+            const checks = [
+                { id: 'hint-length',  test: pw.length >= 8 && pw.length <= 32 },
+                { id: 'hint-upper',   test: /[A-Z]/.test(pw) },
+                { id: 'hint-lower',   test: /[a-z]/.test(pw) },
+                { id: 'hint-number',  test: /[0-9]/.test(pw) },
+                { id: 'hint-special', test: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~`]/.test(pw) }
+            ];
+            checks.forEach(c => {
+                const el = document.getElementById(c.id);
+                if (!el) return;
+                const icon = el.querySelector('i');
+                if (c.test) {
+                    el.classList.add('valid'); el.classList.remove('invalid');
+                    if (icon) { icon.classList.remove('fa-circle'); icon.classList.add('fa-check-circle'); }
+                } else if (pw.length > 0) {
+                    el.classList.add('invalid'); el.classList.remove('valid');
+                    if (icon) { icon.classList.remove('fa-check-circle'); icon.classList.add('fa-circle'); }
+                } else {
+                    el.classList.remove('valid', 'invalid');
+                    if (icon) { icon.classList.remove('fa-check-circle'); icon.classList.add('fa-circle'); }
+                }
+            });
+        };
+
+        // ── Forgot Password flow ─────────────────────────────────
+        window.showForgotPassword = function() {
+            document.getElementById('hero-section').classList.add('hidden');
+            document.getElementById('auth-forms').classList.remove('hidden');
+            document.getElementById('auth-forms').innerHTML = `
+                <div class="mr-card p-8" style="animation:fadeInScale .3s var(--ease-out)">
+                    <div class="text-center mb-6">
+                        <div class="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-key text-yellow-500 text-2xl"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold" style="color:var(--mr-text)">Reset Password</h2>
+                        <p class="text-sm mt-2" style="color:var(--mr-text-sec)">Enter your email and we'll send you a password reset link.</p>
+                    </div>
+                    <div class="space-y-4">
+                        <input type="email" id="reset-email" placeholder="Email address"
+                               class="w-full p-3 rounded-xl" style="border:1.5px solid var(--mr-border);outline:none;font-family:Inter,sans-serif;background:var(--mr-surface);color:var(--mr-text)" onfocus="this.style.borderColor='var(--mr-blue)'" onblur="this.style.borderColor='var(--mr-border)'">
+                        <button onclick="window.sendPasswordReset()" class="mr-btn mr-btn-primary w-full py-3 text-base" id="reset-pw-btn">
+                            <i class="fas fa-paper-plane mr-2"></i>Send Reset Link
+                        </button>
+                        <p class="text-center text-sm" style="color:var(--mr-text-sec)">
+                            Remember your password?
+                            <button onclick="window.showLogin()" style="color:var(--mr-blue-dark);font-weight:600" class="hover:underline">Sign in</button>
+                        </p>
+                    </div>
+                </div>
+            `;
+        };
+
+        window.sendPasswordReset = async function() {
+            const email = document.getElementById('reset-email')?.value?.trim();
+            if (!email) {
+                window.notify.warning('Please enter your email address.');
+                return;
+            }
+            const btn = document.getElementById('reset-pw-btn');
+            if (btn) { btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Sending…'; btn.disabled = true; }
+            try {
+                if (window.supabase) {
+                    const { error } = await window.supabase.auth.resetPasswordForEmail(email, {
+                        redirectTo: window.location.origin + window.location.pathname
+                    });
+                    if (error) throw new Error(error.message);
+                }
+                window.notify.success('Password reset link sent! Check your email inbox.');
+                setTimeout(() => window.showLogin(), 2000);
+            } catch (err) {
+                window.notify.error('Reset failed: ' + err.message);
+                if (btn) { btn.innerHTML = '<i class="fas fa-paper-plane mr-2"></i>Send Reset Link'; btn.disabled = false; }
+            }
+        };
+
         window.showLanding = function() {
             document.getElementById('hero-section').classList.remove('hidden');
             document.getElementById('auth-forms').classList.add('hidden');
@@ -772,11 +888,19 @@
                     <div class="space-y-4">
                         <input type="email" id="login-email" placeholder="Email"
                                class="w-full p-3 rounded-xl" style="border:1.5px solid var(--mr-border);outline:none;font-family:Inter,sans-serif;background:var(--mr-surface);color:var(--mr-text)" onfocus="this.style.borderColor='var(--mr-blue)'" onblur="this.style.borderColor='var(--mr-border)'">
-                        <input type="password" id="login-password" placeholder="Password"
-                               class="w-full p-3 rounded-xl" style="border:1.5px solid var(--mr-border);outline:none;font-family:Inter,sans-serif;background:var(--mr-surface);color:var(--mr-text)" onfocus="this.style.borderColor='var(--mr-blue)'" onblur="this.style.borderColor='var(--mr-border)'">
+                        <div class="password-wrapper">
+                            <input type="password" id="login-password" placeholder="Password" minlength="8" maxlength="32"
+                                   class="w-full p-3 rounded-xl" style="border:1.5px solid var(--mr-border);outline:none;font-family:Inter,sans-serif;background:var(--mr-surface);color:var(--mr-text)" onfocus="this.style.borderColor='var(--mr-blue)'" onblur="this.style.borderColor='var(--mr-border)'">
+                            <button type="button" class="password-toggle-btn" onclick="window.togglePasswordVisibility('login-password', this)" tabindex="-1" title="Show/hide password">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
                         <button onclick="window.login()" class="mr-btn mr-btn-primary w-full py-3 text-base">
                             Sign In
                         </button>
+                        <p class="text-center text-sm" style="color:var(--mr-text-sec)">
+                            <button onclick="window.showForgotPassword()" style="color:var(--mr-blue-dark);font-weight:600" class="hover:underline">Forgot Password?</button>
+                        </p>
                         <p class="text-center text-sm" style="color:var(--mr-text-sec)">
                             Don't have an account?
                             <button onclick="window.showSignup()" style="color:var(--mr-blue-dark);font-weight:600" class="hover:underline">Sign up</button>
@@ -797,8 +921,20 @@
                                class="w-full p-3 rounded-xl" style="border:1.5px solid var(--mr-border);outline:none;font-family:Inter,sans-serif;background:var(--mr-surface);color:var(--mr-text)" onfocus="this.style.borderColor='var(--mr-blue)'" onblur="this.style.borderColor='var(--mr-border)'">
                         <input type="email" id="signup-email" placeholder="Email"
                                class="w-full p-3 rounded-xl" style="border:1.5px solid var(--mr-border);outline:none;font-family:Inter,sans-serif;background:var(--mr-surface);color:var(--mr-text)" onfocus="this.style.borderColor='var(--mr-blue)'" onblur="this.style.borderColor='var(--mr-border)'">
-                        <input type="password" id="signup-password" placeholder="Password (min. 6 characters)"
-                               class="w-full p-3 rounded-xl" style="border:1.5px solid var(--mr-border);outline:none;font-family:Inter,sans-serif;background:var(--mr-surface);color:var(--mr-text)" onfocus="this.style.borderColor='var(--mr-blue)'" onblur="this.style.borderColor='var(--mr-border)'">
+                        <div class="password-wrapper">
+                            <input type="password" id="signup-password" placeholder="Password (min. 8 characters)" minlength="8" maxlength="32"
+                                   class="w-full p-3 rounded-xl" style="border:1.5px solid var(--mr-border);outline:none;font-family:Inter,sans-serif;background:var(--mr-surface);color:var(--mr-text)" onfocus="this.style.borderColor='var(--mr-blue)'" onblur="this.style.borderColor='var(--mr-border)'" oninput="window.validatePasswordHints(this.value)">
+                            <button type="button" class="password-toggle-btn" onclick="window.togglePasswordVisibility('signup-password', this)" tabindex="-1" title="Show/hide password">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <div class="password-hints" id="signup-password-hints">
+                            <div class="password-hint-item" id="hint-length"><i class="fas fa-circle"></i> 8–32 characters</div>
+                            <div class="password-hint-item" id="hint-upper"><i class="fas fa-circle"></i> Uppercase letter</div>
+                            <div class="password-hint-item" id="hint-lower"><i class="fas fa-circle"></i> Lowercase letter</div>
+                            <div class="password-hint-item" id="hint-number"><i class="fas fa-circle"></i> Number</div>
+                            <div class="password-hint-item" id="hint-special"><i class="fas fa-circle"></i> Special character</div>
+                        </div>
                         <input type="tel" id="signup-phone" placeholder="Phone (optional for SMS)"
                                class="w-full p-3 rounded-xl" style="border:1.5px solid var(--mr-border);outline:none;font-family:Inter,sans-serif;background:var(--mr-surface);color:var(--mr-text)" onfocus="this.style.borderColor='var(--mr-blue)'" onblur="this.style.borderColor='var(--mr-border)'">
                         

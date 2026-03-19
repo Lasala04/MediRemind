@@ -1141,3 +1141,151 @@ html.dark-theme #pre-login-footer {
     background: var(--mr-surface) !important;
     border-color: var(--mr-border) !important;
 }
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   PASSWORD TOGGLE (show/hide eye icon)
+   ══════════════════════════════════════════════════════════════════════════════ */
+.password-wrapper {
+    position: relative;
+}
+.password-wrapper input {
+    padding-right: 44px !important;
+}
+.password-toggle-btn {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--mr-text-muted);
+    font-size: 1rem;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color var(--t-fast) ease;
+    z-index: 2;
+}
+.password-toggle-btn:hover {
+    color: var(--mr-blue-dark);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   PASSWORD VALIDATION HINTS
+   ══════════════════════════════════════════════════════════════════════════════ */
+.password-hints {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px 12px;
+    margin-top: 8px;
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    background: var(--mr-surface-alt);
+    border: 1px solid var(--mr-border-light);
+}
+.password-hint-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: var(--mr-text-muted);
+    transition: color var(--t-fast) ease;
+}
+.password-hint-item i {
+    font-size: 0.65rem;
+    width: 14px;
+    text-align: center;
+}
+.password-hint-item.valid {
+    color: var(--mr-green-dark);
+}
+.password-hint-item.valid i {
+    color: var(--mr-green-dark);
+}
+.password-hint-item.invalid {
+    color: #d97706;
+}
+.password-hint-item.invalid i {
+    color: #d97706;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   SIDEBAR COLLAPSE / TOGGLE
+   ══════════════════════════════════════════════════════════════════════════════ */
+.mr-sidebar-toggle {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--mr-surface-alt);
+    border: none;
+    cursor: pointer;
+    color: var(--mr-text-sec);
+    font-size: 1rem;
+    transition: all var(--t-fast) ease;
+    flex-shrink: 0;
+}
+.mr-sidebar-toggle:hover {
+    background: rgba(96,181,209,0.2);
+    color: var(--mr-text);
+}
+
+/* Desktop collapsed state */
+@media (min-width: 769px) {
+    .mr-sidebar.collapsed {
+        transform: translateX(-100%);
+        position: fixed;
+        left: 0;
+        top: 0;
+        box-shadow: var(--shadow-xl);
+    }
+    .mr-sidebar.collapsed.open {
+        transform: translateX(0);
+    }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   DARK THEME — NEW ELEMENTS
+   ══════════════════════════════════════════════════════════════════════════════ */
+html.dark-theme .password-toggle-btn {
+    color: var(--mr-text-muted);
+}
+html.dark-theme .password-toggle-btn:hover {
+    color: var(--mr-blue);
+}
+html.dark-theme .password-hints {
+    background: var(--mr-surface-alt);
+    border-color: var(--mr-border);
+}
+html.dark-theme .password-hint-item {
+    color: var(--mr-text-muted);
+}
+html.dark-theme .password-hint-item.valid {
+    color: var(--mr-green);
+}
+html.dark-theme .password-hint-item.valid i {
+    color: var(--mr-green);
+}
+html.dark-theme .password-hint-item.invalid {
+    color: var(--mr-yellow);
+}
+html.dark-theme .password-hint-item.invalid i {
+    color: var(--mr-yellow);
+}
+
+/* Dismiss button in upcoming reminders */
+html.dark-theme .dark-dismiss-btn {
+    border-color: rgba(255,255,255,0.25) !important;
+    color: var(--mr-text-sec) !important;
+    background: transparent !important;
+}
+html.dark-theme .dark-dismiss-btn:hover {
+    border-color: rgba(255,255,255,0.45) !important;
+    color: var(--mr-text) !important;
+    background: rgba(255,255,255,0.08) !important;
+}

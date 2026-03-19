@@ -204,6 +204,15 @@ window.medications = {
             `Are you sure you want to delete <strong>${medication.name}</strong>? This action cannot be undone.`,
             () => {
                 if (window.medicationDB.delete(id)) {
+                    // Remove associated reminders
+                    if (window.reminderDB) {
+                        const relatedReminders = window.reminderDB.getByMedicationId(id);
+                        relatedReminders.forEach(r => window.reminderDB.delete(r.id));
+                        if (window.reminders) {
+                            window.reminders.renderUpcoming();
+                            window.reminders.updateReminderCount();
+                        }
+                    }
                     window.notify.success(`${medication.name} deleted successfully`);
                     this.load(); // Refresh the display
                 } else {
@@ -232,6 +241,15 @@ window.medications = {
             () => {
                 const archived = window.medicationDB.archive(id);
                 if (archived) {
+                    // Remove associated reminders
+                    if (window.reminderDB) {
+                        const relatedReminders = window.reminderDB.getByMedicationId(id);
+                        relatedReminders.forEach(r => window.reminderDB.delete(r.id));
+                        if (window.reminders) {
+                            window.reminders.renderUpcoming();
+                            window.reminders.updateReminderCount();
+                        }
+                    }
                     window.notify.success(`${medication.name} archived successfully`);
                     this.load();
                 } else {

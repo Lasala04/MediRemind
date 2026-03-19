@@ -202,10 +202,20 @@ window.userProfile = (function () {
                     <i class="fas fa-lock mr-2 text-indigo-400"></i>Change Password
                 </h4>
                 <form onsubmit="event.preventDefault(); window.userProfile.changePassword();" class="space-y-4">
-                    <input id="profile-new-password" type="password" placeholder="New password (min. 6 characters)"
-                           class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300 transition">
-                    <input id="profile-confirm-password" type="password" placeholder="Confirm new password"
-                           class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300 transition">
+                    <div class="password-wrapper">
+                        <input id="profile-new-password" type="password" placeholder="New password (min. 8 characters)"
+                               class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300 transition">
+                        <button type="button" class="password-toggle-btn" onclick="window.togglePasswordVisibility('profile-new-password', this)" tabindex="-1" title="Show/hide password">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    <div class="password-wrapper">
+                        <input id="profile-confirm-password" type="password" placeholder="Confirm new password"
+                               class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300 transition">
+                        <button type="button" class="password-toggle-btn" onclick="window.togglePasswordVisibility('profile-confirm-password', this)" tabindex="-1" title="Show/hide password">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
                     <button type="submit"
                             class="w-full border-2 border-indigo-400 text-indigo-700 py-3 rounded-xl font-semibold
                                    hover:bg-indigo-50 transition">
@@ -483,8 +493,8 @@ window.userProfile = (function () {
         const newPw  = document.getElementById('profile-new-password')?.value;
         const confPw = document.getElementById('profile-confirm-password')?.value;
 
-        if (!newPw || newPw.length < 6) {
-            window.notify.warning('Password must be at least 6 characters.');
+        if (!newPw || newPw.length < 8) {
+            window.notify.warning('Password must be at least 8 characters.');
             return;
         }
 

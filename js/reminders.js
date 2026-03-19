@@ -340,6 +340,7 @@ window.reminders = {
         });
 
         window.modal.close();
+        this.closeUpcomingModal(); // auto-close the upcoming reminders overlay if open
         window.notify.success(
             `Reminder set for <strong>${med?.name || 'medication'}</strong> at ${this.formatTime(time)} via ${types.join(' & ')}.`
         );
@@ -353,6 +354,10 @@ window.reminders = {
     openSnoozeOptions: function (id) {
         const reminder = window.reminderDB.getById(id);
         if (!reminder) return;
+
+        // Close the overlay first so the snooze-options modal is visible
+        // (overlay is z-70, modal system is z-50)
+        this.closeUpcomingModal();
 
         const content = `
             <div class="text-center py-2">
@@ -399,6 +404,9 @@ window.reminders = {
         const reminder = window.reminderDB.getById(id);
         if (!reminder) return;
 
+        // Close overlay first so confirmation dialog is visible (overlay z-70 > modal z-50)
+        this.closeUpcomingModal();
+
         window.modal.confirm(
             `Dismiss the reminder for <strong>${reminder.medicationName}</strong> today?`,
             () => {
@@ -422,6 +430,9 @@ window.reminders = {
     delete: function (id) {
         const reminder = window.reminderDB.getById(id);
         if (!reminder) return;
+
+        // Close overlay first so confirmation dialog is visible (overlay z-70 > modal z-50)
+        this.closeUpcomingModal();
 
         window.modal.confirm(
             `Permanently delete the reminder for <strong>${reminder.medicationName}</strong>?`,
@@ -541,7 +552,7 @@ window.reminders = {
                             <i class="fas fa-clock mr-1"></i>Snooze
                         </button>
                         <button onclick="window.reminders.dismiss('${reminder.id}')"
-                                class="flex-1 text-xs py-1.5 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition font-semibold">
+                                class="flex-1 text-xs py-1.5 rounded-lg transition font-semibold border-2 border-gray-300 text-gray-600 hover:bg-gray-100 hover:border-gray-400 dark-dismiss-btn">
                             <i class="fas fa-check mr-1"></i>Dismiss
                         </button>
                         <button onclick="window.reminders.delete('${reminder.id}')"

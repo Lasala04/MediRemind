@@ -44,8 +44,18 @@ window.signup = async function() {
         return;
     }
     
-    if (password.length < 6) {
-        window.notify.warning('Password must be at least 6 characters');
+    if (password.length < 8) {
+        window.notify.warning('Password must be at least 8 characters');
+        return;
+    }
+
+    if (password.length > 32) {
+        window.notify.warning('Password must be at most 32 characters');
+        return;
+    }
+
+    if (!/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password) || !/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~`]/.test(password)) {
+        window.notify.warning('Password must include uppercase, lowercase, number, and special character');
         return;
     }
 
